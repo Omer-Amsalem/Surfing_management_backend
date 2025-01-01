@@ -2,6 +2,7 @@ import express, { Application } from "express";
 import dotenv from "dotenv";
 import connectDB from "./middleWare/db";
 import errorHandler from "./middleWare/errorHandler";
+import "./types/types";
 
 
 dotenv.config();
