@@ -5,10 +5,11 @@ interface IUser {
     lastName: string;
     email: string;
     password: string;
-    job: string;
+    role: string;
     activityCount: number;
     isHost: boolean;
     profilePicture: string;
+    description: string;
     refreshToken: string[];
 }
 
@@ -24,8 +25,10 @@ const userSchema = new Schema<IUser>({
     email: {
         type: String,
         required: true,
+        unique: true,
+        match: [/\S+@\S+\.\S+/, "Please provide a valid email address"],
     },
-    job: {
+    role: {
         type: String,
         required: true,
     },
@@ -36,6 +39,7 @@ const userSchema = new Schema<IUser>({
     password: {
         type: String,
         required: true,
+        minlength:[6, "Password must be at least 6 characters long"],
     },
     isHost: {
         type: Boolean,
@@ -44,6 +48,10 @@ const userSchema = new Schema<IUser>({
     profilePicture: {
         type: String,
         default : "",
+    },
+    description: {
+        type: String,
+        default: "",
     },
     refreshToken:{
         type: [String],
