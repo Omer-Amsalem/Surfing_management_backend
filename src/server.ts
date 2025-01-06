@@ -2,6 +2,8 @@ import express, { Application } from "express";
 import dotenv from "dotenv";
 import connectDB from "./middleWare/db";
 import errorHandler from "./middleWare/errorHandler";
+import userRoute from "./routes/userRoute";
+import mongoSanitize from "express-mongo-sanitize";
 import "./types/types";
 
 
@@ -11,7 +13,9 @@ dotenv.config();
 const app: Application = express();
 
 app.use(express.json());
+app.use(mongoSanitize());
 
+app.use("/user", userRoute);
 
 app.use(errorHandler);
 
