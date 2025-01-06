@@ -1,5 +1,5 @@
-import { Schema, model, Document } from "mongoose";
-import Comment from "./commentModel";
+import { Schema, model} from "mongoose";
+import {CommentSchema , IComment} from "./commentModel";
 
 // Interface for the post model
 interface IPost {
@@ -15,10 +15,9 @@ interface IPost {
   likeCount: number; 
   participants: string[];
   participantCount: number; 
-  comments: Comment[]; 
+  comments: IComment[]; 
   commentCount: number; 
 }
-
 
 // Schema for the post model
 const PostSchema = new Schema<IPost>(
@@ -67,7 +66,7 @@ const PostSchema = new Schema<IPost>(
         default: [] 
       },
       comments: { 
-        type: [Comment], 
+        type: [CommentSchema], 
         default: [] 
       },
       likeCount: { 
