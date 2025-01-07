@@ -5,6 +5,7 @@ import errorHandler from "./middleWare/errorHandler";
 import userRoute from "./routes/userRoute";
 import mongoSanitize from "express-mongo-sanitize";
 import "./types/types";
+import postRoutes from "./routes/postRoutes";
 
 
 dotenv.config();
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use(mongoSanitize());
 
 app.use("/user", userRoute);
+app.use("/post", postRoutes);
 
 app.use(errorHandler);
 
