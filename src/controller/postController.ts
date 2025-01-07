@@ -175,6 +175,7 @@ export const joinPost = asyncHandler(async (req: Request, res: Response) => {
         // If the user is already a participant, remove hem (unjoin)
         post.participants = post.participants.filter((participant) => participant !== userId);
         post.participantCount = post.participants.length;
+        user.activityCount = user.activityCount - 1;
         await post.save();
 
         res.status(200).json({ 
@@ -185,6 +186,7 @@ export const joinPost = asyncHandler(async (req: Request, res: Response) => {
         // If the user is not a participant yet, add them (join)
         post.participants.push(userId);
         post.participantCount = post.participants.length;
+        user.activityCount = user.activityCount + 1;
         await post.save();
 
         res.status(200).json({ 
