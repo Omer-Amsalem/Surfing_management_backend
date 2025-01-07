@@ -19,8 +19,10 @@ export const createPost = asyncHandler(async (req: Request, res: Response) => {
         throw new Error("All fields are required");
     }
 
+    const formattedDate = convertIsraeliDateToDate(date);
+
     const post = new Post({
-        date,
+        date: formattedDate, 
         time,
         minimumWaveHeight,
         maximumWaveHeight,
@@ -31,26 +33,37 @@ export const createPost = asyncHandler(async (req: Request, res: Response) => {
     });
 
     await post.save();
-    res.status(201).json({ message: "Post created successfully", post });
+    res.status(201).json({
+        message: "Post created successfully",
+        post
+    });
 });
+
 
 // Get All Posts
 export const getAllPosts = asyncHandler(async (req: Request, res: Response) => {
     const posts = await Post.find().sort({ createdAt: -1 });
-    res.status(200).json(posts);
+
+    const formattedPosts = posts.map(post => ({
+        ...post.toObject(), // Convert the post to a plain object
+        date: convertDateToIsraeliDate(post.date), // Add a formatted date
+    }));
+
+    res.status(200).json(formattedPosts); // Return the updated list of posts
 });
 
 // Get Future Posts Only
 export const getFuturePosts = asyncHandler(async (req: Request, res: Response) => {
     const today = new Date();
-    const formattedToday = `${today.getDate().toString().padStart(2, "0")}:${(
-        today.getMonth() + 1
-    )
-        .toString()
-        .padStart(2, "0")}:${today.getFullYear()}`;
 
-    const posts = await Post.find({ date: { $gt: formattedToday } }).sort({ date: 1 });
-    res.status(200).json(posts);
+    const posts = await Post.find({ date: { $gte: today } }).sort({ date: 1 });
+
+    const formattedPosts = posts.map(post => ({
+        ...post.toObject(),
+        date: convertDateToIsraeliDate(post.date), 
+    }));
+
+    res.status(200).json(formattedPosts);
 });
 
 // Get Post By ID
@@ -63,8 +76,15 @@ export const getPostById = asyncHandler(async (req: Request, res: Response) => {
         throw new Error("Post not found");
     }
 
-    res.status(200).json(post);
+    const formattedPost = {
+        ...post.toObject(), 
+        date: convertDateToIsraeliDate(post.date), 
+    };
+
+    res.status(200).json(formattedPost); 
 });
+
+
 
 // Update Post (Host Only)
 export const updatePost = asyncHandler(async (req: Request, res: Response) => {
@@ -84,7 +104,9 @@ export const updatePost = asyncHandler(async (req: Request, res: Response) => {
         throw new Error("Post not found");
     }
 
-    post.date = date || post.date;
+    const formattedDate = date ? convertIsraeliDateToDate(date) : undefined;
+
+    post.date = formattedDate || post.date;
     post.time = time || post.time;
     post.minimumWaveHeight = minimumWaveHeight || post.minimumWaveHeight;
     post.maximumWaveHeight = maximumWaveHeight || post.maximumWaveHeight;
@@ -94,8 +116,18 @@ export const updatePost = asyncHandler(async (req: Request, res: Response) => {
 
     const updatedPost = await post.save();
 
-    res.status(200).json({ message: "Post updated successfully", updatedPost });
+    const formattedPost = {
+        ...updatedPost.toObject(), 
+        date: convertDateToIsraeliDate(updatedPost.date),
+    };
+
+    res.status(200).json({
+        message: "Post updated successfully",
+        updatedPost: formattedPost,
+    });
 });
+
+
 
 // Delete Post (Host Only)
 export const deletePost = asyncHandler(async (req: Request, res: Response) => {
@@ -195,3 +227,32 @@ export const joinPost = asyncHandler(async (req: Request, res: Response) => {
         });
     }
 });
+
+
+/////////////////////---helpers---///////////////////////////
+
+
+//Change an israeli date fotmat to a valid Mongo date format - YYYY/MM/DD
+function convertIsraeliDateToDate(dateString: string): Date | null {
+    if (!dateString) return null; 
+
+    const [day, month, year] = dateString.split("/"); 
+    const parsedDate = new Date(`${year}-${month}-${day}`); 
+
+    if (isNaN(parsedDate.getTime())) {
+        throw new Error("Invalid date format. Expected format: DD/MM/YYYY");
+    }
+
+    return parsedDate; 
+}
+
+
+// Change a valid Mongo date format to an israeli date fotmat - DD/MM/YYYY
+function convertDateToIsraeliDate(date: Date): string | null {
+
+    const day = date.getDate().toString().padStart(2, "0"); 
+    const month = (date.getMonth() + 1).toString().padStart(2, "0"); 
+    const year = date.getFullYear(); 
+
+    return `${day}/${month}/${year}`;
+}
