@@ -1,9 +1,9 @@
 import request from "supertest";
 import app from "../server";
 import mongoose from "mongoose";
-import { Express } from "express";
+import e, { Express } from "express";
 import userModel from "../models/userModel";
-import {generateAccessToken, generateRefreshToken} from "../middleWare/jwtMiddle";
+import { generateAccessToken, generateRefreshToken } from "../middleWare/jwtMiddle";
 import { describe, it, beforeAll, expect, test, jest } from "@jest/globals";
 
 process.env.NODE_ENV = "test";
@@ -16,10 +16,9 @@ jest.setTimeout(10000);
 describe("User Endpoints", () => {
     let accessToken: string;
     let refreshToken: string;
-    
+
 
     beforeAll(async () => {
-        await userModel.deleteMany({});
         await request(app)
             .post("/user/register")
             .send({
@@ -63,10 +62,11 @@ describe("User Endpoints", () => {
     });
 
     it("should fail to register a user with missing fields", async () => {
-        const res = await request(app).post("/users/register").send({
-            email: "Bar@example.com",
+        const res = await request(app).post("/user/register").send({
+
         });
         expect(res.statusCode).toEqual(404);
+        expect(res.body.message).toBe("All fields are required");
     });
 
     it("should login a user", async () => {
@@ -95,7 +95,7 @@ describe("User Endpoints", () => {
         expect(res.statusCode).toEqual(400);
     });
 
-    
+
     it("should fail login for invalid email or password", async () => {
         const res = await request(app)
             .post("/user/login")
@@ -110,22 +110,23 @@ describe("User Endpoints", () => {
         const res = await request(app)
             .post("/user/refresh_token")
             .send({
-                token:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NzYyZWVmMGQ4OTg5ODkyZWY3YTgzMTciLCJpYXQiOjE3MzQ2MzAxOTksImV4cCI6MTczNDYzMDQ5OX0.aIg7CGE6PRTT4UeYXh1pxQyAlUd3YA9jaAfi24hS3nU",
+                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NzYyZWVmMGQ4OTg5ODkyZWY3YTgzMTciLCJpYXQiOjE3MzQ2MzAxOTksImV4cCI6MTczNDYzMDQ5OX0.aIg7CGE6PRTT4UeYXh1pxQyAlUd3YA9jaAfi24hS3nU",
             });
         expect(res.statusCode).toEqual(403);
         expect(res.body.message).toBe("Expired or invalid refresh token");
     });
 
-    
+
 
     it("should refresh tokens with a valid refresh token", async () => {
-        const res1 = await request(app).post("/users/login").send({
-            email: "Omer@gmail.com",
-            password: "12345678"
+        const res1 = await request(app).post("/user/login").send({
+            email: "Bar@example.com",
+            password: "Pass123456"
         });
 
         refreshToken = res1.body.refreshToken;
-        
+        console.log("refreshToken = ", refreshToken);
+
         const res = await request(app)
             .post("/user/refresh_token")
             .send({
@@ -137,14 +138,6 @@ describe("User Endpoints", () => {
 
         refreshToken = res.body.refreshToken;
     });
-    it("should exepted Refresh token required", async () => {
-        const res = await request(app)
-            .post("/users/refresh_token")
-            .send({
-                token: "",
-            });
-        expect(res.statusCode).toEqual(403);
-    });
 
     it("should fail to refresh tokens with an invalid refresh token", async () => {
         const res = await request(app).post("/user/refresh_token").send({
@@ -152,7 +145,7 @@ describe("User Endpoints", () => {
         });
         expect(res.statusCode).toEqual(403);
     });
-    
+
 
     it("should fail to Refresh token required", async () => {
         const res = await request(app).post("/user/refresh_token").send({
@@ -161,7 +154,7 @@ describe("User Endpoints", () => {
         expect(res.statusCode).toEqual(403);
         expect(res.body.message).toBe("Refresh token required");
     });
-    
+
     //logout user
     it("should success logout user", async () => {
         const res = await request(app)
@@ -199,8 +192,8 @@ describe("User Endpoints", () => {
 
         expect(res.status).toBe(404);
         expect(res.body.message).toBe("User not found");
-     });
-        it("should fail to logout a user with an invalid refresh token", async () => {
+    });
+    it("should fail to logout a user with an invalid refresh token", async () => {
         const token = generateRefreshToken(userId);
 
         const res = await request(app)
@@ -225,7 +218,7 @@ describe("User Endpoints", () => {
     });
     it("should fail to update user with invalid access token", async () => {
         const invalidToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NzcyNmNjZmQ1ZDYxYWY2YjU0NTA5MTUiLCJpYXQiOjE3MzU1NTIyMjYsImV4cCI6MTczNTU1MjUyNn0.-DmAGumQ_e5QcA1vLX-ihEIDJbWE3rK3SSONs7F6HTk";
-    
+
         const res = await request(app)
             .put("/user/update")
             .set("Authorization", `Bearer ${invalidToken}`)
@@ -251,7 +244,7 @@ describe("User Endpoints", () => {
         expect(res.statusCode).toEqual(404);
         expect(res.body.message).toBe("User not found");
     });
-    
+
 
 
     //Update User
@@ -294,5 +287,11 @@ describe("User Endpoints", () => {
         expect(res.body.message).toBe("User deleted successfully");
     });
     
+    afterAll(async () => {
+        await userModel.deleteOne({ email: "Omer@gmail.com" });
+        await userModel.deleteOne({ email: "Bar@example.com" });
+        await mongoose.connection.close();
+    });
+
 
 });
