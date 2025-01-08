@@ -19,6 +19,7 @@ export const registerUser = asyncHandler(async (req: Request, res: Response) => 
     const { firstName, lastName, email, password, role, profilePicture  } = req.body;
 
     if (!email || !password || !firstName || !lastName || !role ) {
+        res.status(404);
         throw new Error("All fields are required");
     }
     
