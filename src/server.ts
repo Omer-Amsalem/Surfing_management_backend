@@ -6,6 +6,7 @@ import userRoute from "./routes/userRoute";
 import mongoSanitize from "express-mongo-sanitize";
 import "./types/types";
 import postRoutes from "./routes/postRoutes";
+import commentRoutes from "./routes/commentRoutes"
 
 
 dotenv.config();
@@ -18,6 +19,8 @@ app.use(mongoSanitize());
 
 app.use("/user", userRoute);
 app.use("/post", postRoutes);
+app.use("/comment", commentRoutes);
+
 
 app.use(errorHandler);
 
