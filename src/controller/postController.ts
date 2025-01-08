@@ -85,7 +85,6 @@ export const getPostById = asyncHandler(async (req: Request, res: Response) => {
 });
 
 
-
 // Update Post (Host Only)
 export const updatePost = asyncHandler(async (req: Request, res: Response) => {
     const user = req.user!;
