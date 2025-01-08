@@ -21,7 +21,7 @@ router.get("/futurePosts",auth, getFuturePosts);
 
 router.get("/getById/:id",auth, getPostById);
 
-router.patch("/update/:id", auth, updatePost);
+router.put("/update/:id", auth, updatePost);
 
 router.delete("/delete/:id", auth, deletePost);
 

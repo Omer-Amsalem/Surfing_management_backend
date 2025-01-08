@@ -232,7 +232,7 @@ export const joinPost = asyncHandler(async (req: Request, res: Response) => {
 
 
 //Change an israeli date fotmat to a valid Mongo date format - YYYY/MM/DD
-function convertIsraeliDateToDate(dateString: string): Date | null {
+export function convertIsraeliDateToDate(dateString: string): Date | null {
     if (!dateString) return null; 
 
     const [day, month, year] = dateString.split("/"); 
@@ -245,9 +245,8 @@ function convertIsraeliDateToDate(dateString: string): Date | null {
     return parsedDate; 
 }
 
-
 // Change a valid Mongo date format to an israeli date fotmat - DD/MM/YYYY
-function convertDateToIsraeliDate(date: Date): string | null {
+export function convertDateToIsraeliDate(date: Date): string | null {
 
     const day = date.getDate().toString().padStart(2, "0"); 
     const month = (date.getMonth() + 1).toString().padStart(2, "0"); 
