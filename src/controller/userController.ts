@@ -82,11 +82,12 @@ export const refreshToken = asyncHandler(async (req: Request, res: Response) => 
         await user.save();
         res.status(403);
         throw new Error("Expired or invalid refresh token");
-    }
+    }   
+    
         // Generate new tokens
         const newAccessToken = generateAccessToken(user._id.toString());
         const newRefreshToken = generateRefreshToken(user._id.toString());
-
+        console.log("refresh Token =  ",newRefreshToken);
         // Update user's refresh token array
         user.refreshToken = user.refreshToken.filter((t) => t !== token); // Remove old token
         user.refreshToken.push(newRefreshToken);
@@ -141,7 +142,7 @@ export const logoutUser = asyncHandler(async (req: Request, res: Response) => {
 // Update User
 export const updateUser = asyncHandler(async (req: Request, res: Response) => {
     const user = req.user!;
-    const { firstName, lastName, profilePicture, role, description } = req.body;
+    const { firstName, lastName, role, profilePicture, description } = req.body;
     
     if(!firstName || !lastName || !profilePicture || !role){
         res.status(400);
