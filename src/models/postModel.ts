@@ -3,7 +3,7 @@ import {CommentSchema , IComment} from "./commentModel";
 
 // Interface for the post model
 interface IPost {
-  date: string; 
+  date: Date; 
   time: string; 
   minimumWaveHeight: number; 
   maximumWaveHeight: number; 
@@ -23,7 +23,7 @@ interface IPost {
 const PostSchema = new Schema<IPost>(
     {
       date: { 
-        type: String, 
+        type: Date,
         required: true 
       },
       time: { 
