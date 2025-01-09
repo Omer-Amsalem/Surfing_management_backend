@@ -6,21 +6,25 @@ import {
     getCommentsByUserId,
     updateComment,
     deleteComment,
+    deleteAllComments
 } from "../controller/commentController";
 import { auth } from "../controller/userController";
 
 const router = express.Router();
 
-router.post("/create", auth, createComment);
+router.post("/create/:postId", auth, createComment);
 
-router.get("/:postId",auth, getCommentsByPostId);
+router.get("/postId/:postId",auth, getCommentsByPostId);
 
-router.get("/:commntId",auth, getCommentById);
+router.get("/commentId/:commentId",auth, getCommentById);
 
-router.get("/:commntId",auth, getCommentsByUserId);
+router.get("/userId/:userId",auth, getCommentsByUserId);
 
-router.put("/:commentId", auth, updateComment);
+router.put("/update/:commentId", auth, updateComment);
 
-router.delete("/:commentId", auth, deleteComment);
+router.delete("/delete/:commentId", auth, deleteComment);
+
+router.delete("/deleteAll/:postId", auth, deleteAllComments);
+
 
 export default router;

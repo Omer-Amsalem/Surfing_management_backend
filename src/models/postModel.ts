@@ -15,7 +15,7 @@ interface IPost {
   likeCount: number; 
   participants: string[];
   participantCount: number; 
-  comments: IComment[]; 
+  comments: string[]; 
   commentCount: number; 
 }
 
@@ -66,7 +66,7 @@ const PostSchema = new Schema<IPost>(
         default: [] 
       },
       comments: { 
-        type: [CommentSchema], 
+        type: [String], 
         default: [] 
       },
       likeCount: { 
