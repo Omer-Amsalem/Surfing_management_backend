@@ -8,26 +8,27 @@ import { timeStamp } from "console";
 
 // Create a new comment
 export const createComment = asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.user!.id; 
-    const { postId, content } = req.body;
+    const { content, postId } = req.body;
+    const userId = req.user?.id;
 
-    if (!postId || !content) {
+    if (!content) {
         res.status(400);
-        throw new Error("Post ID and content are required");
+        throw new Error("Content is required");
     }
 
-    if (!mongoose.Types.ObjectId.isValid(postId)) {
+    if (!postId) {
         res.status(400);
-        throw new Error("Invalid Post ID");
+        throw new Error("Post ID is required");
     }
 
+    // Find the post by ID
     const post = await Post.findById(postId);
-
     if (!post) {
         res.status(404);
         throw new Error("Post not found");
     }
 
+    // Create a new comment
     const comment = await Comment.create({
         postId,
         userId,
@@ -35,17 +36,16 @@ export const createComment = asyncHandler(async (req: Request, res: Response) =>
         timestamp: new Date(),
     });
 
-    post.comments.push(comment._id.toString()); 
-    post.commentCount = post.comments.length; 
-    await post.save(); 
+    // Update the post's comment count and add the comment ID to the post's comments array
+    post.comments.push(comment._id.toString());
+    post.commentCount = post.comments.length;
+    await post.save();
 
     res.status(201).json({
-        message: "Comment added successfully",
+        message: "Comment created successfully",
         comment,
-        newCommentsNum: post.commentCount
     });
 });
-
 
 // Get all comments for a specific post
 export const getCommentsByPostId = asyncHandler(async (req: Request, res: Response) => {
