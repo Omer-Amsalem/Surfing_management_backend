@@ -21,6 +21,7 @@ export const createComment = asyncHandler(async (req: Request, res: Response) =>
         throw new Error("Post ID is required");
     }
 
+
     // Find the post by ID
     const post = await Post.findById(postId);
     if (!post) {
@@ -166,12 +167,6 @@ export const deleteAllComments = asyncHandler(async (req: Request, res: Response
     if (!req.user || req.user.role !== "host") {
         res.status(403);
         throw new Error("Unauthorized: Only hosts can perform this action");
-    }
-
-    // Validate Post ID
-    if (!postId) {
-        res.status(400);
-        throw new Error("Post ID is required");
     }
 
     // Find the post by ID

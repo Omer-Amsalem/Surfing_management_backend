@@ -304,16 +304,17 @@ describe("Comment Endpoints", () => {
         expect(res.body.message).toEqual("Unauthorized to delete this comment");
     });
 
-    console.log("commentId:", commentId);
+    console.log("commentId:", commentId)
 
-    // it("should delete a comment successfully", async () => {
-    //     const res = await request(app)
-    //         .delete(`/comment/delete/${commentId}`) 
-    //         .set("Authorization", `Bearer ${accessTokenUser}`); // Ensure the user is the comment's author
+    it("should delete the existing comment successfully", async () => {
+        const res = await request(app)
+            .delete(`/comment/delete/${commentId}`)
+            .set("Authorization", `Bearer ${accessTokenUser}`); // Same user who created the comment
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body.message).toEqual("Comment deleted successfully");
+    });
     
-    //     expect(res.statusCode).toEqual(200);
-    //     expect(res.body.message).toEqual("Comment deleted successfully");
-    // });
 
     it("should return 404 if the comment does not exist", async () => {
         const fakeCommentId = new mongoose.Types.ObjectId(); // Generate a non-existent comment ID
@@ -346,10 +347,33 @@ describe("Comment Endpoints", () => {
     //     expect(res.body.message).toEqual("Not authorized, no token");
     // });
     
-  
-    
-    
-    
+    // it("should delete all comments for a specific post", async () => {
+    //     const res = await request(app)
+    //         .delete(`/comment/deleteAll/${postId}`)
+    //         .set("Authorization", `Bearer ${accessTokenUser}`);
 
+    //     expect(res.statusCode).toEqual(200);
+    //     expect(res.body.message).toEqual("Comments deleted successfully");
+    // });
+    
+    // it("should return 404 if the post does not exist", async () => {    
+    //     const res = await request(app)
+    //         .delete(`/comment/deleteAll/abc`)
+    //         .set("Authorization", `Bearer ${accessTokenUser}`);
+    
+    //     expect(res.statusCode).toEqual(404);
+    //     expect(res.body.message).toEqual("Post not found");
+    // });
+
+    it("should return 403 if the user is not the author of the post", async () => {
+        const res = await request(app)
+            .delete(`/comment/deleteAll/${postId}`)
+            .set("Authorization", `Bearer ${accessTokenUser}`); // User who did not create the post
+    
+        expect(res.statusCode).toEqual(403);
+        expect(res.body.message).toEqual("Unauthorized: Only hosts can perform this action");
+    });
+    
+    
 });
 
