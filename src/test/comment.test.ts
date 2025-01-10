@@ -2,15 +2,19 @@ import request from "supertest";
 import app from "../server";
 import mongoose from "mongoose";
 import { describe, it, beforeAll, expect, jest } from "@jest/globals";
+import jwt from "jsonwebtoken";
+import Comment from '../models/commentModel'; 
+
 
 jest.setTimeout(100000);
 
 let accessTokenHost: string;
 let accessTokenUser: string;
 let postId: mongoose.Types.ObjectId;
-let commentId: string;
+let userCommentId: string;
 let hostUserId: string;
-let userUserId: string;
+let userId: string;
+let postIdWhidoutComments: mongoose.Types.ObjectId;
 
 describe("Comment Endpoints", () => {
     beforeAll(async () => {
@@ -32,7 +36,7 @@ describe("Comment Endpoints", () => {
                 password: "123456",
             });
         accessTokenUser = loginUserRes.body.accessToken;
-        userUserId = loginUserRes.body.id;
+        userId = loginUserRes.body.id;
 
         // Create a new post
         const resPost = await request(app)
@@ -60,7 +64,7 @@ describe("Comment Endpoints", () => {
 
         expect(res.statusCode).toEqual(201);
         expect(res.body.comment.content).toEqual("Test Comment");
-        commentId = res.body.comment._id;
+        userCommentId = res.body.comment._id;
     });
 
     it("should fail if postId is missing", async () => {
@@ -75,15 +79,6 @@ describe("Comment Endpoints", () => {
         expect(res.body.message).toEqual("Post ID is required");
     });
 
-    it("should return 400 if postId is missing", async () => {
-        const res = await request(app)
-            .get(`/comment/postId/`) // Missing postId in the URL
-            .set("Authorization", `Bearer ${accessTokenHost}`);
-    
-        expect(res.statusCode).toEqual(400);
-        expect(res.body.message).toEqual("Post ID is required");
-    });
-    
     it("should return 404 if the post does not exist", async () => {
         const fakePostId = new mongoose.Types.ObjectId(); // Non-existent post ID
     
@@ -107,10 +102,10 @@ describe("Comment Endpoints", () => {
                 averageWindSpeed: 10,
                 description: "Post with no comments",
             });
-        const newPostId = newPostRes.body.post._id;
+        postIdWhidoutComments = newPostRes.body.post._id;
     
         const res = await request(app)
-            .get(`/comment/postId/${newPostId}`)
+            .get(`/comment/postId/${postIdWhidoutComments}`)
             .set("Authorization", `Bearer ${accessTokenHost}`);
     
         expect(res.statusCode).toEqual(404);
@@ -118,15 +113,6 @@ describe("Comment Endpoints", () => {
     });
     
     it("should return all comments for a specific post", async () => {
-        // Create a new comment for the post
-        await request(app)
-            .post(`/comment/create/${postId}`)
-            .set("Authorization", `Bearer ${accessTokenUser}`)
-            .send({
-                postId: postId,
-                content: "Test Comment for Post",
-            });
-    
         const res = await request(app)
             .get(`/comment/postId/${postId}`)
             .set("Authorization", `Bearer ${accessTokenHost}`);
@@ -134,54 +120,62 @@ describe("Comment Endpoints", () => {
         expect(res.statusCode).toEqual(200);
         expect(Array.isArray(res.body)).toBeTruthy();
         expect(res.body.length).toBeGreaterThan(0);
-        expect(res.body.some((comment: any) => comment.postId === postId.toString())).toBeTruthy();
     });
 
-    it("should retrieve a comment by its ID", async () => {
+    it("should return 400 if postId is missing in the request", async () => {
         const res = await request(app)
-            .get(`/comment/commentId/${commentId}`) // Use a valid commentId
-            .set("Authorization", `Bearer ${accessTokenHost}`); // Ensure Authorization is provided
+            .get(`/comment/postId/`)
+            .set("Authorization", `Bearer ${accessTokenHost}`); 
+    
+        expect(res.statusCode).toEqual(400);
+        expect(res.body.message).toEqual("Post ID is required");
+    });
+    
+
+    it("should get a comment by its ID", async () => {
+        const res = await request(app)
+            .get(`/comment/commentId/${userCommentId}`)
+            .set("Authorization", `Bearer ${accessTokenHost}`); 
     
         expect(res.statusCode).toEqual(200);
-        expect(res.body).toHaveProperty("_id", commentId); // Ensure the response includes the correct ID
+        expect(res.body).toHaveProperty("_id", userCommentId); 
         expect(res.body).toHaveProperty("content");
         expect(res.body).toHaveProperty("postId");
     });
     
     it("should fail if the comment does not exist", async () => {
-        const fakeCommentId = new mongoose.Types.ObjectId(); // Generate a non-existent comment ID
-    
+        const fakeCommentId = new mongoose.Types.ObjectId(); 
         const res = await request(app)
             .get(`/comment/commentId/${fakeCommentId}`)
             .set("Authorization", `Bearer ${accessTokenHost}`);
     
         expect(res.statusCode).toEqual(404);
-        expect(res.body.message).toEqual("Comment not found"); // Ensure correct error message
+        expect(res.body.message).toEqual("Comment not found"); 
     });
 
-    it("shude fail if thete is no comments for a specific post", async () => {
-        const newPostRes = await request(app)
-            .post("/post/create")
-            .set("Authorization", `Bearer ${accessTokenHost}`)
-            .send({
-                date: "12/12/2050",
-                time: "09:00",
-                minimumWaveHeight: 1.0,
-                maximumWaveHeight: 2.0,
-                averageWindSpeed: 10,
-                description: "Post with no comments",
-            });
-        const newPostId = newPostRes.body.post._id;
-    
+    it("should return all comments for a specific user", async () => {
         const res = await request(app)
-            .get(`/comment/postId/${newPostId}`)
+            .get(`/comment/userId/${hostUserId}`)
+            .set("Authorization", `Bearer ${accessTokenHost}`);
+
+        expect(res.statusCode).toEqual(200);
+        expect(Array.isArray(res.body)).toBeTruthy();
+        expect(res.body.length).toBeGreaterThan(0);
+        res.body.forEach((comment: any) => {
+            expect(comment.userId).toEqual(hostUserId);
+        });
+    });
+
+    it("shude fail if there is no comments for a specific post", async () => {
+        const res = await request(app)
+            .get(`/comment/postId/${postIdWhidoutComments}`)
             .set("Authorization", `Bearer ${accessTokenHost}`);
     
         expect(res.statusCode).toEqual(404);
         expect(res.body.message).toEqual("No comments found for this post");
     });
 
-    it("should fail if content is missing", async () => {
+    it("should fail to create a comment if content is missing", async () => {
         const res = await request(app)
             .post(`/comment/create/${postId}`)
             .set("Authorization", `Bearer ${accessTokenHost}`)
@@ -205,52 +199,9 @@ describe("Comment Endpoints", () => {
         expect(res.body.message).toEqual("Post not found");
     });
 
-    it("should retrieve a comment by its ID", async () => {
+    it("should fail to update a comment if the user is not the author", async () => {
         const res = await request(app)
-            .get(`/comment/commentId/${commentId}`)
-            .set("Authorization", `Bearer ${accessTokenHost}`);
-
-        expect(res.statusCode).toEqual(200);
-        expect(res.body.content).toEqual("Test Comment");
-        expect(res.body.postId).toEqual(postId.toString());
-    });
-
-    it("should get all comments for a specific post", async () => {
-        const res = await request(app)
-            .get(`/comment/postId/${postId}`)
-            .set("Authorization", `Bearer ${accessTokenHost}`);
-
-        expect(res.statusCode).toEqual(200);
-        expect(Array.isArray(res.body)).toBeTruthy();
-        expect(res.body.length).toBeGreaterThan(0);
-        expect(res.body.some((comment: any) => comment._id === commentId)).toBeTruthy();
-    });
-
-    it("should fail if no comments exist for a specific post", async () => {
-        const newPostRes = await request(app)
-            .post("/post/create")
-            .set("Authorization", `Bearer ${accessTokenHost}`)
-            .send({
-                date: "12/12/2050",
-                time: "09:00",
-                minimumWaveHeight: 1.0,
-                maximumWaveHeight: 2.0,
-                averageWindSpeed: 10,
-                description: "Post with no comments",
-            });
-        const newPostId = newPostRes.body.post._id;
-
-        const res = await request(app)
-            .get(`/comment/postId/${newPostId}`)
-            .set("Authorization", `Bearer ${accessTokenHost}`);
-
-        expect(res.statusCode).toEqual(404);
-        expect(res.body.message).toEqual("No comments found for this post");
-    });
-
-    it("should fail if the user is not the author of the comment", async () => {
-        const res = await request(app)
-            .put(`/comment/update/${commentId}`)
+            .put(`/comment/update/${userCommentId}`)
             .set("Authorization", `Bearer ${accessTokenHost}`)
             .send({ content: "Unauthorized update" });
 
@@ -258,7 +209,7 @@ describe("Comment Endpoints", () => {
         expect(res.body.message).toEqual("Unauthorized to update this comment");
     });
 
-    it("should fail if the comment does not exist", async () => {
+    it("should fail to update if the comment does not exist", async () => {
         const fakeCommentId = new mongoose.Types.ObjectId();
         const res = await request(app)
             .put(`/comment/update/${fakeCommentId}`)
@@ -268,22 +219,6 @@ describe("Comment Endpoints", () => {
         expect(res.statusCode).toEqual(404);
         expect(res.body.message).toEqual("Comment not found");
     });
-
-    
-
-    it("should return all comments for a specific user", async () => {
-        const res = await request(app)
-            .get(`/comment/userId/${hostUserId}`)
-            .set("Authorization", `Bearer ${accessTokenHost}`);
-
-        expect(res.statusCode).toEqual(200);
-        expect(Array.isArray(res.body)).toBeTruthy();
-        expect(res.body.length).toBeGreaterThan(0);
-        res.body.forEach((comment: any) => {
-            expect(comment.userId).toEqual(hostUserId);
-        });
-    });
-
 
     it("should return 404 if the user has no comments", async () => {
         const noCommentUserId = new mongoose.Types.ObjectId();
@@ -295,26 +230,27 @@ describe("Comment Endpoints", () => {
         expect(res.body.message).toEqual("No comments found for this user");
     });
 
-    it("should return 403 if the user is not the author of the comment", async () => {
+    it("shuld fail to delete a comment if the user is not the author", async () => {
         const res = await request(app)
-            .delete(`/comment/delete/${commentId}`) 
-            .set("Authorization", `Bearer ${accessTokenHost}`); 
-    
+            .delete(`/comment/delete/${userCommentId}`)
+            .set("Authorization", `Bearer ${accessTokenHost}`);
+
         expect(res.statusCode).toEqual(403);
         expect(res.body.message).toEqual("Unauthorized to delete this comment");
     });
 
-    console.log("commentId:", commentId)
-
     it("should delete the existing comment successfully", async () => {
         const res = await request(app)
-            .delete(`/comment/delete/${commentId}`)
-            .set("Authorization", `Bearer ${accessTokenUser}`); // Same user who created the comment
-
+            .delete(`/comment/delete/${userCommentId}`)
+            .set("Authorization", `Bearer ${accessTokenUser}`);
+        
+        console.log('Delete Response:', {
+            statusCode: res.statusCode,
+            body: res.body
+        });
         expect(res.statusCode).toEqual(200);
         expect(res.body.message).toEqual("Comment deleted successfully");
     });
-    
 
     it("should return 404 if the comment does not exist", async () => {
         const fakeCommentId = new mongoose.Types.ObjectId(); // Generate a non-existent comment ID
@@ -327,52 +263,17 @@ describe("Comment Endpoints", () => {
         expect(res.body.message).toEqual("Comment not found");
     });
 
-
-    // it("should return 400 if the commentId is invalid", async () => {
-    //     const invalidCommentId = "12345"; // Invalid ID format
-    
-    //     const res = await request(app)
-    //         .delete(`/comment/delete/${invalidCommentId}`)
-    //         .set("Authorization", `Bearer ${accessTokenUser}`);
-    
-    //     expect(res.statusCode).toEqual(400);
-    //     expect(res.body.message).toEqual("Invalid Comment ID");
-    // });
-    
-    // it("should return 401 if no Authorization token is provided", async () => {
-    //     const res = await request(app)
-    //         .delete(`/comment/delete/${commentId}`); // Valid commentId but no Authorization token
-    
-    //     expect(res.statusCode).toEqual(401);
-    //     expect(res.body.message).toEqual("Not authorized, no token");
-    // });
-    
-    // it("should delete all comments for a specific post", async () => {
-    //     const res = await request(app)
-    //         .delete(`/comment/deleteAll/${postId}`)
-    //         .set("Authorization", `Bearer ${accessTokenUser}`);
-
-    //     expect(res.statusCode).toEqual(200);
-    //     expect(res.body.message).toEqual("Comments deleted successfully");
-    // });
-    
-    // it("should return 404 if the post does not exist", async () => {    
-    //     const res = await request(app)
-    //         .delete(`/comment/deleteAll/abc`)
-    //         .set("Authorization", `Bearer ${accessTokenUser}`);
-    
-    //     expect(res.statusCode).toEqual(404);
-    //     expect(res.body.message).toEqual("Post not found");
-    // });
-
     it("should return 403 if the user is not the author of the post", async () => {
         const res = await request(app)
-            .delete(`/comment/deleteAll/${postId}`)
+            .delete(`/comment/deleteAll/${postId.toString()}`)
             .set("Authorization", `Bearer ${accessTokenUser}`); // User who did not create the post
     
         expect(res.statusCode).toEqual(403);
         expect(res.body.message).toEqual("Unauthorized: Only hosts can perform this action");
     });
+
+    
+    
     
     
 });

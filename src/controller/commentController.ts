@@ -43,7 +43,7 @@ export const createComment = asyncHandler(async (req: Request, res: Response) =>
     await post.save();
 
     res.status(201).json({
-        message: "Comment created successfully",
+        message:  "Comment created successfully",
         comment,
     });
 });
@@ -123,6 +123,11 @@ export const updateComment = asyncHandler(async (req: Request, res: Response) =>
         throw new Error("Unauthorized to update this comment");
     }
 
+    if (!content) {
+        res.status(400);
+        throw new Error("Content is required");
+    }
+
     // Update the comment's content and timestamp
     comment.content = content;
     comment.timestamp = new Date();
@@ -148,7 +153,7 @@ export const deleteComment = asyncHandler(async (req: Request, res: Response) =>
     }
 
     // Check if the logged-in user is the author of the comment
-    if (comment.userId !== userId) {
+    if (comment.userId.toString() !== userId.toString()) {
         res.status(403);
         throw new Error("Unauthorized to delete this comment");
     }
@@ -164,7 +169,7 @@ export const deleteAllComments = asyncHandler(async (req: Request, res: Response
     const { postId } = req.params;
 
     // Validate if user is a host
-    if (!req.user || req.user.role !== "host") {
+    if (!req.user?.id || req.user.role !== "host") {
         res.status(403);
         throw new Error("Unauthorized: Only hosts can perform this action");
     }
