@@ -209,6 +209,17 @@ describe("Comment Endpoints", () => {
         expect(res.body.message).toEqual("Unauthorized to update this comment");
     });
 
+
+    it("should update an existing comment successfully", async () => {
+        const res = await request(app)
+            .put(`/comment/update/${userCommentId.toString()}`)
+            .set("Authorization", `Bearer ${accessTokenUser}`)
+            .send({ content: "Updated Test Comment" });
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body.message).toEqual("Comment updated successfully");
+    });
+
     it("should fail to update if the comment does not exist", async () => {
         const fakeCommentId = new mongoose.Types.ObjectId();
         const res = await request(app)
@@ -218,6 +229,16 @@ describe("Comment Endpoints", () => {
 
         expect(res.statusCode).toEqual(404);
         expect(res.body.message).toEqual("Comment not found");
+    });
+
+    it("should fail to update if content is missing", async () => {
+        const res = await request(app)
+            .put(`/comment/update/${userCommentId}`)
+            .set("Authorization", `Bearer ${accessTokenUser}`)
+            .send({});
+
+        expect(res.statusCode).toEqual(400);
+        expect(res.body.message).toEqual("Content is required");
     });
 
     it("should return 404 if the user has no comments", async () => {
@@ -272,9 +293,24 @@ describe("Comment Endpoints", () => {
         expect(res.body.message).toEqual("Unauthorized: Only hosts can perform this action");
     });
 
+    it("should return 404 if the post does not exist", async () => {
+        const fakePostId = new mongoose.Types.ObjectId();
+        const res = await request(app)
+            .delete(`/comment/deleteAll/${fakePostId}`)
+            .set("Authorization", `Bearer ${accessTokenHost}`);
     
+        expect(res.statusCode).toEqual(404);
+        expect(res.body.message).toEqual("Post not found");
+    });
     
+    it("should delete all comments for a specific post", async () => {
+        const res = await request(app)
+            .delete(`/comment/deleteAll/${postId.toString()}`)
+            .set("Authorization", `Bearer ${accessTokenHost}`);
     
-    
+        expect(res.statusCode).toEqual(200);
+        expect(res.body.message).toEqual("All comments deleted successfully");
+    });
+
 });
 

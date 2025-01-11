@@ -9,7 +9,7 @@ import { timeStamp } from "console";
 // Create a new comment
 export const createComment = asyncHandler(async (req: Request, res: Response) => {
     const { content, postId } = req.body;
-    const userId = req.user?.id;
+    const userId = req.user!.id;
 
     if (!content) {
         res.status(400);
@@ -118,7 +118,7 @@ export const updateComment = asyncHandler(async (req: Request, res: Response) =>
     }
 
     // Check if the logged-in user is the author of the comment
-    if (comment.userId !== userId) {
+    if (comment.userId.toString() !== userId) {
         res.status(403);
         throw new Error("Unauthorized to update this comment");
     }
@@ -169,7 +169,7 @@ export const deleteAllComments = asyncHandler(async (req: Request, res: Response
     const { postId } = req.params;
 
     // Validate if user is a host
-    if (!req.user?.id || req.user.role !== "host") {
+    if (!req.user?.id || req.user?.isHost === false) {
         res.status(403);
         throw new Error("Unauthorized: Only hosts can perform this action");
     }
