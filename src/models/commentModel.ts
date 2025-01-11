@@ -1,9 +1,9 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, mongo } from "mongoose";
 
 // Interface for a single comment
 interface IComment {
-  postId: string;
-  userId: string;
+  postId: mongo.ObjectId;
+  userId: mongo.ObjectId;
   content: string;
   timestamp: Date;
 }
@@ -11,11 +11,11 @@ interface IComment {
 // Schema for a single comment
 const CommentSchema = new Schema<IComment>({
   postId: {
-    type: String,
+    type: Schema.Types.ObjectId,
     required: true,
   },
   userId: {
-    type: String,
+    type: Schema.Types.ObjectId,
     required: true,
   },
   content: {

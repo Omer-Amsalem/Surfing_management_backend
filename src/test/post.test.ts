@@ -22,7 +22,7 @@ describe("Post Endpoints", () => {
         const loginHostRes = await request(app)
             .post("/user/login")
             .send({
-                email: "postTestUser@gnail.com",
+                email: "HostTestUser@gnail.com",
                 password: "123456",
             });
     
@@ -32,7 +32,7 @@ describe("Post Endpoints", () => {
         const loginUserRes = await request(app)
         .post("/user/login")
         .send({
-            email: "postTestUser2@gnail.com",
+            email: "RegularTestUser@gnail.com",
             password: "123456",
         });
         
