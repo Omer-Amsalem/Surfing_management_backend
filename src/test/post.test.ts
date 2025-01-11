@@ -260,6 +260,34 @@ describe("Post Endpoints", () => {
         expect(res.body.message).toBe("Post not found");
     });
 
+    it("should fail to delete all likes if not host", async () => {
+        const res = await request(app)
+            .delete(`/post/deleteAllLikes/${postId}`)
+            .set("Authorization", `Bearer ${accessTokenUser}`);
+        expect(res.statusCode).toEqual(403);
+        expect(res.body.message).toBe("Only hosts can delete likes");
+    });
+
+    it("should fail to delete all likes if the post is not found", async () => {
+        const nonExistentPostId = "64c8f4e1b2d8b1c1e6a39e99"; 
+    
+        const res = await request(app)
+            .delete(`/post/deleteAllLikes/${nonExistentPostId}`)
+            .set("Authorization", `Bearer ${accessTokenHost}`);
+    
+        expect(res.statusCode).toBe(404);
+        expect(res.body.message).toBe("Post not found");
+    });
+
+    it("should delete all likes", async () => {
+        const res = await request(app)
+            .delete(`/post/deleteAllLikes/${postId}`)
+            .set("Authorization", `Bearer ${accessTokenHost}`);
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body.message).toBe("All likes deleted successfully");
+    });
+
     it("should fail to delete a post if not host", async () => {
         const res = await request(app)
             .delete(`/post/delete/${postId}`)
@@ -268,13 +296,41 @@ describe("Post Endpoints", () => {
         expect(res.body.message).toBe("Only hosts can delete posts");
     });
 
+    it("should fail to delete all the participants if not host", async () => {
+        const res = await request(app)
+            .delete(`/post/deleteAllParticipants/${postId}`)
+            .set("Authorization", `Bearer ${accessTokenUser}`);
+        expect(res.statusCode).toEqual(403);
+        expect(res.body.message).toBe("Only hosts can delete participants");
+    });
+
+    it("should fail to delete all the participants if post dosnt exist", async () => {
+        const nonExistentPostId = "64c8f4e1b2d8b1c1e6a39e99"; 
+    
+        const res = await request(app)
+            .delete(`/post/deleteAllParticipants/${nonExistentPostId}`)
+            .set("Authorization", `Bearer ${accessTokenHost}`);
+    
+        expect(res.statusCode).toBe(404);
+        expect(res.body.message).toBe("Post not found");
+    });
+
+    it("should delete all participants", async () => {
+        const res = await request(app)
+            .delete(`/post/deleteAllParticipants/${postId}`)
+            .set("Authorization", `Bearer ${accessTokenHost}`);
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body.message).toBe("All participants deleted successfully");
+    });
+
     it("should delete a post", async () => {
         const res = await request(app)
             .delete(`/post/delete/${postId}`)
             .set("Authorization", `Bearer ${accessTokenHost}`);
 
         expect(res.statusCode).toEqual(200);
-        expect(res.body.message).toBe("Post deleted successfully");
+        expect(res.body.message).toBe("Post and its comments deleted successfully");
     });
 
     it("should fail when trying to delete a non-existent post", async () => {

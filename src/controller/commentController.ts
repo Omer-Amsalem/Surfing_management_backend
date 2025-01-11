@@ -157,10 +157,27 @@ export const deleteComment = asyncHandler(async (req: Request, res: Response) =>
         res.status(403);
         throw new Error("Unauthorized to delete this comment");
     }
-
+    
     // Delete the comment
     await comment.deleteOne();
-    res.status(200).json({ message: "Comment deleted successfully" });
+
+    // Remove the comment ID from the associated post and update the comment count
+    await Post.findByIdAndUpdate(
+        comment.postId,
+        {
+            $pull: { comments: commentId },
+            $inc: { commentCount: -1 }
+        },
+        { new: true } 
+    );
+
+    const updatedPost = await Post.findById(comment.postId);
+    
+    // Send response with updated comment count
+    res.status(200).json({
+        message: "Comment deleted successfully",
+        updatedCommentCount: updatedPost?.commentCount,
+    });
 });
 
 
