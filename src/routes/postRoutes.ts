@@ -8,6 +8,8 @@ import {
     deletePost,
     likePost,
     joinPost,
+    deleteAllLikes,
+    deleteAllParticipants,
 } from "../controller/postController";
 import { auth } from "../controller/userController";
 
@@ -28,5 +30,10 @@ router.delete("/delete/:id", auth, deletePost);
 router.post("/like/:id", auth, likePost);
 
 router.post("/join/:id", auth, joinPost);
+
+router.delete("/deleteAllLikes/:id", auth, deleteAllLikes);
+
+router.delete("/deleteAllParticipants/:id", auth, deleteAllParticipants);
+
 
 export default router;

@@ -126,29 +126,6 @@ export const updatePost = asyncHandler(async (req: Request, res: Response) => {
     });
 });
 
-
-
-// Delete Post (Host Only)
-export const deletePost = asyncHandler(async (req: Request, res: Response) => {
-    const user = req.user!;
-    const { id } = req.params;
-
-    if (!user.isHost) {
-        res.status(403);
-        throw new Error("Only hosts can delete posts");
-    }
-
-    const post = await Post.findById(id);
-
-    if (!post) {
-        res.status(404);
-        throw new Error("Post not found");
-    }
-
-    await post.deleteOne();
-    res.status(200).json({ message: "Post deleted successfully" });
-});
-
 // Like or unlike a Post
 export const likePost = asyncHandler(async (req: Request, res: Response) => {
     const user = req.user!;
@@ -186,7 +163,6 @@ export const likePost = asyncHandler(async (req: Request, res: Response) => {
         });
     }
 });
-
 
 // Join or Unjoin a Post
 export const joinPost = asyncHandler(async (req: Request, res: Response) => {
@@ -227,10 +203,87 @@ export const joinPost = asyncHandler(async (req: Request, res: Response) => {
     }
 });
 
+//delete all likes from a post
+export const deleteAllLikes = asyncHandler(async (req: Request, res: Response) => {
+    const user = req.user!;
+    const { id } = req.params;
+
+    if (!user.isHost) {
+        res.status(403);
+        throw new Error("Only hosts can delete likes");
+    }
+
+    const post = await Post.findById(id);
+
+    if (!post) {
+        res.status(404);
+        throw new Error("Post not found");
+    }
+
+    post.likes = [];
+    post.likeCount = 0;
+    await post.save();
+
+    res.status(200).json({
+        message: "All likes deleted successfully",
+        likeCount: post.likeCount
+    });
+});
+
+// delete all participants from a post
+export const deleteAllParticipants = asyncHandler(async (req: Request, res: Response) => {
+    const user = req.user!;
+    const { id } = req.params;
+
+    if (!user.isHost) {
+        res.status(403);
+        throw new Error("Only hosts can delete participants");
+    }
+
+    const post = await Post.findById(id);
+
+    if (!post) {
+        res.status(404);
+        throw new Error("Post not found");
+    }
+
+    post.participants = [];
+    post.participantCount = 0;
+    await post.save();
+
+    res.status(200).json({
+        message: "All participants deleted successfully",
+        participantCount: post.participantCount
+    });
+});
+
+// Delete Post deeply (Host Only)
+export const deletePost = asyncHandler(async (req: Request, res: Response) => {
+    const user = req.user!;
+    const { id } = req.params;
+
+    if (!user.isHost) {
+        res.status(403);
+        throw new Error("Only hosts can delete posts");
+    }
+
+    const post = await Post.findById(id);
+
+    if (!post) {
+        res.status(404);
+        throw new Error("Post not found");
+    }
+
+    // Delete all comments associated with the post 
+    await Comment.deleteMany({ _id: { $in: post.comments } });
+
+    await post.deleteOne();
+
+    res.status(200).json({ message: "Post and its comments deleted successfully" });
+});
+
 
 /////////////////////---helpers---///////////////////////////
-
-
 //Change an israeli date fotmat to a valid Mongo date format - YYYY/MM/DD
 export function convertIsraeliDateToDate(dateString: string): Date | null {
     if (!dateString) return null; 
