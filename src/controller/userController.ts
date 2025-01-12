@@ -16,9 +16,9 @@ const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET as string;
 
 // Register User
 export const registerUser = asyncHandler(async (req: Request, res: Response) => {
-    const { firstName, lastName, email, password, role, profilePicture  } = req.body;
+    const { firstName, lastName, email, password, role} = req.body;
 
-    if (!email || !password || !firstName || !lastName || !role ) {
+    if (!firstName || !lastName|| !email || !password || !role ) {
         res.status(404);
         throw new Error("All fields are required");
     }
@@ -30,7 +30,8 @@ export const registerUser = asyncHandler(async (req: Request, res: Response) => 
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ firstName, lastName, email, password: hashedPassword, role: role, profilePicture });
+    const user = new User({ firstName, lastName, email, password: hashedPassword,
+         role, profilePicture: req.file ? req.file.path : undefined});
 
     await user.save();
     res.status(201).json({ user });
@@ -143,7 +144,8 @@ export const logoutUser = asyncHandler(async (req: Request, res: Response) => {
 // Update User
 export const updateUser = asyncHandler(async (req: Request, res: Response) => {
     const user = req.user!;
-    const { firstName, lastName, role, profilePicture, description } = req.body;
+    const { firstName, lastName, role, description } = req.body;
+    const profilePicture = req.file ? req.file.path : user.profilePicture;
     
     if(!firstName || !lastName || !profilePicture || !role){
         res.status(400);
