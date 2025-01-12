@@ -9,6 +9,8 @@ import postRoutes from "./routes/postRoutes";
 import commentRoutes from "./routes/commentRoutes";
 import cors from "cors";
 
+
+
 dotenv.config();
 
 
@@ -18,6 +20,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(mongoSanitize());
 app.use(cors({origin: "http://localhost:5173" }));
+app.use("/uploads", express.static("uploads"));
+
 
 app.use("/user", userRoute);
 app.use("/post", postRoutes);
