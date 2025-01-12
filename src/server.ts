@@ -6,9 +6,9 @@ import userRoute from "./routes/userRoute";
 import mongoSanitize from "express-mongo-sanitize";
 import "./types/types";
 import postRoutes from "./routes/postRoutes";
+import commentRoutes from "./routes/commentRoutes";
+import cors from "cors";
 
-
-;
 dotenv.config();
 
 
