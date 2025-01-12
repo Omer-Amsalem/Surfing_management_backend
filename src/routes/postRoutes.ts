@@ -8,25 +8,32 @@ import {
     deletePost,
     likePost,
     joinPost,
+    deleteAllLikes,
+    deleteAllParticipants,
 } from "../controller/postController";
 import { auth } from "../controller/userController";
 
 const router = express.Router();
 
-router.post("/", auth, createPost);
+router.post("/create", auth, createPost);
 
-router.get("/", getAllPosts);
+router.get("/getAll", auth, getAllPosts);
 
-router.get("/future", getFuturePosts);
+router.get("/futurePosts",auth, getFuturePosts);
 
-router.get("/:id", getPostById);
+router.get("/getById/:id",auth, getPostById);
 
-router.patch("/:id", auth, updatePost);
+router.put("/update/:id", auth, updatePost);
 
-router.delete("/:id", auth, deletePost);
+router.delete("/delete/:id", auth, deletePost);
 
-router.post("/:id/like", auth, likePost);
+router.post("/like/:id", auth, likePost);
 
-router.post("/:id/join", auth, joinPost);
+router.post("/join/:id", auth, joinPost);
+
+router.delete("/deleteAllLikes/:id", auth, deleteAllLikes);
+
+router.delete("/deleteAllParticipants/:id", auth, deleteAllParticipants);
+
 
 export default router;

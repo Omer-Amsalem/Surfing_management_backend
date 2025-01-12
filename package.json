@@ -7,8 +7,8 @@
     "test": "jest --detectOpenHandles --forceExit --runInBand",
     "test:coverage": "jest --detectOpenHandles --forceExit --runInBand --coverage",
     "testAuth": "jest --detectOpenHandles --forceExit user.test.ts  --runInBand --coverage",
-    "testPost": "jest --detectOpenHandles --forceExit post.test.ts",
-    "testComment": "jest --detectOpenHandles --forceExit comment.test.ts --coverage",
+    "testPost": "jest --detectOpenHandles --forceExit post.test.ts  --runInBand --coverage",
+    "testComment": "jest --detectOpenHandles --forceExit comment.test.ts --runInBand --coverage",
     "start": "nodemon ./src/server.ts"
   },
   "keywords": [],

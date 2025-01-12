@@ -6,7 +6,6 @@ import userRoute from "./routes/userRoute";
 import mongoSanitize from "express-mongo-sanitize";
 import "./types/types";
 import postRoutes from "./routes/postRoutes";
-import cors from "cors"; 
 
 
 ;
@@ -22,6 +21,8 @@ app.use(cors({origin: "http://localhost:5173" }));
 
 app.use("/user", userRoute);
 app.use("/post", postRoutes);
+app.use("/comment", commentRoutes);
+
 
 app.use(errorHandler);
 
