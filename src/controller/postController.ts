@@ -179,27 +179,37 @@ export const joinPost = asyncHandler(async (req: Request, res: Response) => {
 
     const userId = user.id.toString();
 
-    if (post.participants.includes(userId)) {
+    if (post.participants.includes(userId) ) {
         // If the user is already a participant, remove hem (unjoin)
-        post.participants = post.participants.filter((participant) => participant !== userId);
-        post.participantCount = post.participants.length;
-        user.activityCount = user.activityCount - 1;
+        post.participants = post.participants.filter((participant) => participant.toString() !== userId);
+        user.userActivity = user.userActivity.filter((activity) => activity.toString() !== post.id);
+     
         await post.save();
+        await user.save();
+
 
         res.status(200).json({ 
-            message: "Participation removed successfully", 
-            participantCount: post.participantCount 
+            message: "Participation removed successfully and user left the activity",   
+            participants: post.participants,
+            participantCount: post.participants.length,
+            userAcivity: user.userActivity,
+            userActivityCount: user.userActivity.length
         });
     } else {
         // If the user is not a participant yet, add them (join)
         post.participants.push(userId);
-        post.participantCount = post.participants.length;
-        user.activityCount = user.activityCount + 1;
+        user.userActivity.push(post.id);
+
         await post.save();
+        await user.save();
+        
 
         res.status(200).json({ 
-            message: "Participation confirmed successfully", 
-            participantCount: post.participantCount 
+            message: "Participation confirmed successfully and user joined the activity",
+            participants: post.participants,
+            participantCount: post.participants.length,
+            userAcivity: user.userActivity,
+            userActivityCount: user.userActivity.length
         });
     }
 });
@@ -308,3 +318,6 @@ export function convertDateToIsraeliDate(date: Date): string | null {
 
     return `${day}/${month}/${year}`;
 }
+
+
+
