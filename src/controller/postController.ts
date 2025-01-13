@@ -7,7 +7,7 @@ import Comment from "../models/commentModel";
 // Create Post (Host Only)
 export const createPost = asyncHandler(async (req: Request, res: Response) => {
     const user = req.user!;
-    const { date, time, minimumWaveHeight, maximumWaveHeight, averageWindSpeed, description, photoUrl } = req.body;
+    const { date, time, minimumWaveHeight, maximumWaveHeight, averageWindSpeed, description} = req.body;
 
     if (!user.isHost) {
         res.status(403);
@@ -28,7 +28,7 @@ export const createPost = asyncHandler(async (req: Request, res: Response) => {
         maximumWaveHeight,
         averageWindSpeed,
         description,
-        photoUrl,
+        photoUrl: req.file ? req.file.path : undefined,
         createdBy: user._id,
     });
 
@@ -64,6 +64,7 @@ export const getFuturePosts = asyncHandler(async (req: Request, res: Response) =
     }));
 
     res.status(200).json(formattedPosts);
+    console.log(formattedPosts);
 });
 
 // Get Post By ID
@@ -111,7 +112,7 @@ export const updatePost = asyncHandler(async (req: Request, res: Response) => {
     post.maximumWaveHeight = maximumWaveHeight || post.maximumWaveHeight;
     post.averageWindSpeed = averageWindSpeed || post.averageWindSpeed;
     post.description = description || post.description;
-    post.photoUrl = photoUrl || post.photoUrl;
+    post.photoUrl = photoUrl || req.file?.path || post.photoUrl;
 
     const updatedPost = await post.save();
 
