@@ -12,11 +12,10 @@ dotenv.config();
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET as string;
 
 
-
-
 // Register User
 export const registerUser = asyncHandler(async (req: Request, res: Response) => {
     const { firstName, lastName, email, password, role} = req.body;
+   
 
     if (!firstName || !lastName|| !email || !password || !role ) {
         res.status(404);
@@ -177,6 +176,15 @@ export const deleteUser = asyncHandler(async (req: Request, res: Response) => {
 
     res.status(200).json({ message: "User deleted successfully" });
 });
+//get user by id
+export const getUserById = asyncHandler(async (req: Request, res: Response) => {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+        res.status(404);
+        throw new Error("User not found");
+    }
+    res.status(200).json(user);
+}); 
 
 // Auth Middleware
 export const auth = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
@@ -206,3 +214,4 @@ export const auth = asyncHandler(async (req: Request, res: Response, next: NextF
 
     next();
 });
+

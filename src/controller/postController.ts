@@ -7,7 +7,7 @@ import Comment from "../models/commentModel";
 // Create Post (Host Only)
 export const createPost = asyncHandler(async (req: Request, res: Response) => {
     const user = req.user!;
-    const { date, time, minimumWaveHeight, maximumWaveHeight, averageWindSpeed, description, photoUrl } = req.body;
+    const { date, time, minimumWaveHeight, maximumWaveHeight, averageWindSpeed, description} = req.body;
 
     if (!user.isHost) {
         res.status(403);
@@ -28,7 +28,7 @@ export const createPost = asyncHandler(async (req: Request, res: Response) => {
         maximumWaveHeight,
         averageWindSpeed,
         description,
-        photoUrl,
+        photoUrl: req.file ? req.file.path : undefined,
         createdBy: user._id,
     });
 
@@ -64,6 +64,7 @@ export const getFuturePosts = asyncHandler(async (req: Request, res: Response) =
     }));
 
     res.status(200).json(formattedPosts);
+    console.log(formattedPosts);
 });
 
 // Get Post By ID
@@ -111,7 +112,7 @@ export const updatePost = asyncHandler(async (req: Request, res: Response) => {
     post.maximumWaveHeight = maximumWaveHeight || post.maximumWaveHeight;
     post.averageWindSpeed = averageWindSpeed || post.averageWindSpeed;
     post.description = description || post.description;
-    post.photoUrl = photoUrl || post.photoUrl;
+    post.photoUrl = photoUrl || req.file?.path || post.photoUrl;
 
     const updatedPost = await post.save();
 
@@ -178,27 +179,37 @@ export const joinPost = asyncHandler(async (req: Request, res: Response) => {
 
     const userId = user.id.toString();
 
-    if (post.participants.includes(userId)) {
+    if (post.participants.includes(userId) ) {
         // If the user is already a participant, remove hem (unjoin)
-        post.participants = post.participants.filter((participant) => participant !== userId);
-        post.participantCount = post.participants.length;
-        user.activityCount = user.activityCount - 1;
+        post.participants = post.participants.filter((participant) => participant.toString() !== userId);
+        user.userActivity = user.userActivity.filter((activity) => activity.toString() !== post.id);
+     
         await post.save();
+        await user.save();
+
 
         res.status(200).json({ 
-            message: "Participation removed successfully", 
-            participantCount: post.participantCount 
+            message: "Participation removed successfully and user left the activity",   
+            participants: post.participants,
+            participantCount: post.participants.length,
+            userAcivity: user.userActivity,
+            userActivityCount: user.userActivity.length
         });
     } else {
         // If the user is not a participant yet, add them (join)
         post.participants.push(userId);
-        post.participantCount = post.participants.length;
-        user.activityCount = user.activityCount + 1;
+        user.userActivity.push(post.id);
+
         await post.save();
+        await user.save();
+        
 
         res.status(200).json({ 
-            message: "Participation confirmed successfully", 
-            participantCount: post.participantCount 
+            message: "Participation confirmed successfully and user joined the activity",
+            participants: post.participants,
+            participantCount: post.participants.length,
+            userAcivity: user.userActivity,
+            userActivityCount: user.userActivity.length
         });
     }
 });
@@ -307,3 +318,6 @@ export function convertDateToIsraeliDate(date: Date): string | null {
 
     return `${day}/${month}/${year}`;
 }
+
+
+

@@ -11,6 +11,7 @@ interface IUser {
     profilePicture: string;
     description: string;
     refreshToken: string[];
+    userActivity: mongoose.Schema.Types.ObjectId[];
 }
 
 const userSchema = new Schema<IUser>({
@@ -39,7 +40,7 @@ const userSchema = new Schema<IUser>({
     password: {
         type: String,
         required: true,
-        minlength:[6, "Password must be at least 6 characters long"],
+        minlength: [6, "Password must be at least 6 characters long"],
     },
     isHost: {
         type: Boolean,
@@ -47,19 +48,25 @@ const userSchema = new Schema<IUser>({
     },
     profilePicture: {
         type: String,
-        default : "",
+        default: "",
     },
     description: {
         type: String,
         default: "",
     },
-    refreshToken:{
+    refreshToken: {
         type: [String],
         default: [],
-    }
+    },
+    userActivity: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Post", 
+        },
+    ],
 });
 
 export default mongoose.model<IUser>("User", userSchema);
 
 
-export interface UserDocument extends IUser, Document {}
+export interface UserDocument extends IUser, Document { }
