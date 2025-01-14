@@ -1,7 +1,7 @@
-
 import { NextFunction, Request, Response } from "express";
 import bcrypt from "bcryptjs";  
-import User from "../models/userModel"; 
+import User from "../models/userModel";
+import Post from "../models/postModel"; 
 import asyncHandler from "express-async-handler";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import {generateAccessToken,generateRefreshToken,verifyAccessToken, verifyRefreshToken} from "../middleWare/jwtMiddle"; 
@@ -58,7 +58,7 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
     user.refreshToken.push(refreshToken);
     await user.save();
 
-    res.status(200).json({email: user.email, id:user._id, accessToken, refreshToken });
+    res.status(200).json({email: user.email, id:user._id, accessToken, refreshToken, isHost: user.isHost, userPhoto: user.profilePicture});
 });
 
 // Refresh Token
@@ -184,7 +184,17 @@ export const getUserById = asyncHandler(async (req: Request, res: Response) => {
         throw new Error("User not found");
     }
     res.status(200).json(user);
-}); 
+});
+
+export const getUserActivities = asyncHandler(async (req: Request, res: Response) => {
+    const user = req.user!;
+    const posts = await User.findById(user._id).populate("userActivity");;
+    if (!posts) {
+        res.status(404);
+        throw new Error("Posts not found");
+    }
+    res.status(200).json(posts.userActivity);
+});
 
 // Auth Middleware
 export const auth = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
