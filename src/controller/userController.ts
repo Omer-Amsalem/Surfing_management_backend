@@ -146,10 +146,6 @@ export const updateUser = asyncHandler(async (req: Request, res: Response) => {
     const { firstName, lastName, role, description } = req.body;
     const profilePicture = req.file ? req.file.path : user.profilePicture;
     
-    if(!firstName || !lastName || !profilePicture || !role){
-        res.status(400);
-        throw new Error("All fields are required");
-    }
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
     if (profilePicture) user.profilePicture = profilePicture;
