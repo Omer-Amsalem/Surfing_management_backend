@@ -24,7 +24,7 @@ router.get("/futurePosts",auth, getFuturePosts);
 
 router.get("/getById/:id",auth, getPostById);
 
-router.put("/update/:id", auth,upload.single("photoUrl"), updatePost);
+router.put("/update/:id", auth,upload.single("photo"), updatePost);
 
 router.delete("/delete/:id", auth, deletePost);
 
