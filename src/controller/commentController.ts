@@ -8,14 +8,17 @@ import { timeStamp } from "console";
 // Create a new comment
 export const createComment = asyncHandler(
   async (req: Request, res: Response) => {
-    const {content} = req.body;
+    const { content } = req.body;
     const userId = req.user!.id;
-    const postId = req.params.postId; 
+    const postId = req.params.postId;
 
     if (!content) {
       res.status(400);
       throw new Error("Content is required");
     }
+
+    console.log("Received Post ID:", postId);
+    console.log("Request Body:", req.body);
 
     if (!postId) {
       res.status(400);
@@ -31,6 +34,7 @@ export const createComment = asyncHandler(
 
     // Create a new comment
     const comment = await Comment.create({
+      postId,
       userId,
       content,
       timestamp: new Date(),
@@ -55,7 +59,7 @@ export const getCommentsByPostId = asyncHandler(
 
     const comments = await Comment.find({ postId });
     const post = await Post.findById(postId);
-
+    
     if (!postId) {
       res.status(400);
       throw new Error("Post ID is required");
@@ -66,12 +70,13 @@ export const getCommentsByPostId = asyncHandler(
       throw new Error("Post not found");
     }
 
-    if (!comments || comments.length === 0) {
-      res.status(404);
-      throw new Error("No comments found for this post");
-    }
-
-    res.status(200).json(comments);
+    res.status(200).json({
+      comments,
+      message:
+        comments.length === 0
+          ? "No comments found for this post."
+          : "Comments retrieved successfully.",
+    });
   }
 );
 
