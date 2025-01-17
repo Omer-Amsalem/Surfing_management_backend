@@ -17,9 +17,6 @@ export const createComment = asyncHandler(
       throw new Error("Content is required");
     }
 
-    console.log("Received Post ID:", postId);
-    console.log("Request Body:", req.body);
-
     if (!postId) {
       res.status(400);
       throw new Error("Post ID is required");
@@ -42,7 +39,6 @@ export const createComment = asyncHandler(
 
     // Update the post's comment count and add the comment ID to the post's comments array
     post.comments.push(comment._id.toString());
-    post.commentCount = post.comments.length;
     await post.save();
 
     res.status(201).json({
@@ -59,7 +55,7 @@ export const getCommentsByPostId = asyncHandler(
 
     const comments = await Comment.find({ postId });
     const post = await Post.findById(postId);
-    
+
     if (!postId) {
       res.status(400);
       throw new Error("Post ID is required");
@@ -180,7 +176,6 @@ export const deleteComment = asyncHandler(
       comment.postId,
       {
         $pull: { comments: commentId },
-        $inc: { commentCount: -1 },
       },
       { new: true }
     );
@@ -190,7 +185,7 @@ export const deleteComment = asyncHandler(
     // Send response with updated comment count
     res.status(200).json({
       message: "Comment deleted successfully",
-      updatedCommentCount: updatedPost?.commentCount,
+      numOfComments: updatedPost?.comments.length,
     });
   }
 );
@@ -215,13 +210,12 @@ export const deleteAllComments = asyncHandler(
 
     // Clear the comments array and reset comment count
     post.comments = [];
-    post.commentCount = 0;
     await post.save();
 
     res.status(200).json({
       message: "All comments deleted successfully",
       post,
-      commentAmount: post.commentCount,
+      commentAmount: post.comments.length,
     });
   }
 );
