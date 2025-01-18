@@ -4,6 +4,7 @@ import asyncHandler from "express-async-handler";
 import Comment from "../models/commentModel";
 import Post from "../models/postModel";
 import { timeStamp } from "console";
+import { populate } from "dotenv";
 
 // Create a new comment
 export const createComment = asyncHandler(
@@ -37,13 +38,19 @@ export const createComment = asyncHandler(
       timestamp: new Date(),
     });
 
-    // Update the post's comment count and add the comment ID to the post's comments array
+    // Update add the comment ID to the post's comments array
     post.comments.push(comment._id.toString());
     await post.save();
 
     res.status(201).json({
       message: "Comment created successfully",
-      comment,
+      comment: {
+        id: comment._id, 
+        postId: comment.postId,
+        userId: comment.userId,
+        content: comment.content,
+        timestamp: comment.timestamp,
+      },
     });
   }
 );
