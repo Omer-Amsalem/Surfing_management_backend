@@ -7,6 +7,7 @@ import mongoSanitize from "express-mongo-sanitize";
 import "./types/types";
 import postRoutes from "./routes/postRoutes";
 import commentRoutes from "./routes/commentRoutes";
+import chatRoutes from "./routes/chatRoutes";
 import cors from "cors";
 
 
@@ -26,6 +27,7 @@ app.use("/uploads", express.static("uploads"));
 app.use("/user", userRoute);
 app.use("/post", postRoutes);
 app.use("/comment", commentRoutes);
+app.use("/api.gemini.com", chatRoutes);
 
 
 app.use(errorHandler);

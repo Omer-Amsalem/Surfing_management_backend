@@ -11,7 +11,7 @@ router.post("/logout", logoutUser);
 router.put("/update",auth, upload.single("profilePicture"), updateUser);
 router.delete("/delete",auth, deleteUser);
 router.get("/getUser/:id", auth , getUserById);
-router.post("/refresh_token", refreshToken);
+router.post("/refreshToken", refreshToken);
 router.get("/activities", auth, getUserActivities);
 
 export default router;
