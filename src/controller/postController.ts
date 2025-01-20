@@ -149,7 +149,7 @@ export const likePost = asyncHandler(async (req: Request, res: Response) => {
 
         res.status(200).json({ 
             message: "Like removed successfully", 
-            likeCount: post.likeCount 
+            likes: post.likes
         });
     }
     else{
@@ -160,7 +160,7 @@ export const likePost = asyncHandler(async (req: Request, res: Response) => {
 
         res.status(200).json({
             message: "Post liked successfully",
-            likeCount: post.likeCount
+            likes: post.likes
         });
     }
 });
