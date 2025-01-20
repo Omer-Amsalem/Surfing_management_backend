@@ -1,12 +1,14 @@
 import { NextFunction, Request, Response } from "express";
-import bcrypt from "bcryptjs";  
+import bcrypt from "bcryptjs";
 import User from "../models/userModel";
-import Post from "../models/postModel"; 
+import Post from "../models/postModel";
 import asyncHandler from "express-async-handler";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import {generateAccessToken,generateRefreshToken,verifyAccessToken, verifyRefreshToken} from "../middleWare/jwtMiddle"; 
+import { generateAccessToken, generateRefreshToken, verifyAccessToken, verifyRefreshToken } from "../middleWare/jwtMiddle";
 import dotenv from "dotenv";
 dotenv.config();
+import { OAuth2Client } from "google-auth-library";
+import { v4 as uuid } from 'uuid';
 
 
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET as string;
@@ -14,14 +16,14 @@ const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET as string;
 
 // Register User
 export const registerUser = asyncHandler(async (req: Request, res: Response) => {
-    const { firstName, lastName, email, password, role} = req.body;
-   
+    const { firstName, lastName, email, password, role } = req.body;
 
-    if (!firstName || !lastName|| !email || !password || !role ) {
+
+    if (!firstName || !lastName || !email || !password || !role) {
         res.status(404);
         throw new Error("All fields are required");
     }
-    
+
     const userExists = await User.findOne({ email });
     if (userExists) {
         res.status(400);
@@ -29,8 +31,10 @@ export const registerUser = asyncHandler(async (req: Request, res: Response) => 
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ firstName, lastName, email, password: hashedPassword,
-         role, profilePicture: req.file ? req.file.path : undefined});
+    const user = new User({
+        firstName, lastName, email, password: hashedPassword,
+        role, profilePicture: req.file ? req.file.path : undefined
+    });
 
     await user.save();
     res.status(201).json({ user });
@@ -54,11 +58,11 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
     const accessToken = generateAccessToken(user._id.toString());
     const refreshToken = generateRefreshToken(user._id.toString());
 
-   
+
     user.refreshToken.push(refreshToken);
     await user.save();
 
-    res.status(200).json({email: user.email, id:user._id, accessToken, refreshToken, isHost: user.isHost, userPhoto: user.profilePicture});
+    res.status(200).json({ email: user.email, id: user._id, accessToken, refreshToken, isHost: user.isHost, userPhoto: user.profilePicture });
 });
 
 // Refresh Token
@@ -71,7 +75,7 @@ export const refreshToken = asyncHandler(async (req: Request, res: Response) => 
     }
     const user = await User.findOne({ refreshToken: token });
     if (!user) {
-        
+
         res.status(403);
         throw new Error("Invalid refresh token");
     }
@@ -83,18 +87,18 @@ export const refreshToken = asyncHandler(async (req: Request, res: Response) => 
         await user.save();
         res.status(403);
         throw new Error("Expired or invalid refresh token");
-    }   
-    
-        // Generate new tokens
-        const newAccessToken = generateAccessToken(user._id.toString());
-        const newRefreshToken = generateRefreshToken(user._id.toString());
-        console.log("refresh Token =  ",newRefreshToken);
-        // Update user's refresh token array
-        user.refreshToken = user.refreshToken.filter((t) => t !== token); // Remove old token
-        user.refreshToken.push(newRefreshToken);
-        await user.save();
+    }
 
-        res.status(200).json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
+    // Generate new tokens
+    const newAccessToken = generateAccessToken(user._id.toString());
+    const newRefreshToken = generateRefreshToken(user._id.toString());
+    console.log("refresh Token =  ", newRefreshToken);
+    // Update user's refresh token array
+    user.refreshToken = user.refreshToken.filter((t) => t !== token); // Remove old token
+    user.refreshToken.push(newRefreshToken);
+    await user.save();
+
+    res.status(200).json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
 });
 
 // Logout User
@@ -145,7 +149,7 @@ export const updateUser = asyncHandler(async (req: Request, res: Response) => {
     const user = req.user!;
     const { firstName, lastName, role, description } = req.body;
     const profilePicture = req.file ? req.file.path : user.profilePicture;
-    
+
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
     if (profilePicture) user.profilePicture = profilePicture;
@@ -220,4 +224,81 @@ export const auth = asyncHandler(async (req: Request, res: Response, next: NextF
 
     next();
 });
+
+
+export const googleLogin = async (req: Request, res: Response): Promise<void> => {
+    const client = new OAuth2Client(
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET,
+        "postmessage"
+    );
+    const { code }: { code: string } = req.body;
+    try {
+        if (!code) {
+            res.status(400).send("Invalid code");
+            return;
+        }
+        const response = await client.getToken(code);
+        const ticket = await client.verifyIdToken({
+            idToken: response.tokens.id_token!,
+            audience: process.env.GOOGLE_CLIENT_ID!,
+        });
+
+        const payload = ticket.getPayload();
+        if (!payload) {
+            res.status(401).send("Invalid payload");
+            return;
+        }
+
+        const email = payload.email;
+        if (!email) {
+            res.status(402).send("Invalid email");
+            return;
+        }
+        const user = await User.findOne({
+            email: { $regex: new RegExp(`^${email}$`, "i") },
+        });
+        if (!user) {
+            const newUser = await User.create({
+                firstName: payload.given_name,
+                lastName: payload.family_name,
+                email: email,
+                password: uuid(),
+                role: "ללא תפקיד",
+                profilePicture: payload.picture,
+                activityCount: 0,
+                isHost: false,
+                description: "",
+                userActivity: [],
+                refreshTokens: [],
+            });
+            const refreshToken = generateRefreshToken(newUser._id.toString());
+            const accessToken = generateAccessToken(newUser._id.toString());
+            if (refreshToken && accessToken) {
+                newUser.refreshToken.push(refreshToken);
+                await newUser.save();
+                res.status(200).send({
+                    user: newUser,
+                    accessToken: accessToken,
+                    refreshToken: refreshToken,
+                });
+            }
+        } else {
+            const refreshToken = generateRefreshToken(user._id.toString());
+            const accessToken = generateAccessToken(user._id.toString());
+            if (refreshToken && accessToken) {
+                user.refreshToken.push(refreshToken);
+                await user.save();
+                res.status(200).send({
+                    user: user,
+                    accessToken: accessToken,
+                    refreshToken:refreshToken,
+                });
+            }
+        }
+    } catch (error: any) {
+        res.status(500).send(error.message);
+    }
+};
+
 
