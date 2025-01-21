@@ -187,10 +187,11 @@ export const likePost = asyncHandler(async (req: Request, res: Response) => {
     post.likes = post.likes.filter((like) => like !== userId);
     post.likeCount = post.likes.length;
     await post.save();
-
+    
     res.status(200).json({
       message: "Like removed successfully",
       likeCount: post.likeCount,
+      likes: post.likes,
     });
   } else {
     // if the user did not push like, the like will be added
@@ -201,6 +202,7 @@ export const likePost = asyncHandler(async (req: Request, res: Response) => {
     res.status(200).json({
       message: "Post liked successfully",
       likeCount: post.likeCount,
+      likes: post.likes,
     });
   }
 });
