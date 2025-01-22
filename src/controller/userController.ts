@@ -217,22 +217,8 @@ export const getUserActivities = asyncHandler(
       res.status(404);
       throw new Error("User not found");
     }
-
-    const userActivities = await User.findById(user._id).populate(
-      "userActivity"
-    );
-
-    if (!userActivities) {
-      res.status(404);
-      throw new Error("User activities not found");
-    }
-
-    const formattedPosts = userActivities.userActivity.map((post: any) => ({
-      ...post.toObject(),
-      date: convertDateToIsraeliDate(post.date),
-    }));
-
-    res.status(200).json(formattedPosts);
+    
+    res.status(200).json(user.userActivity);
   }
 );
 
