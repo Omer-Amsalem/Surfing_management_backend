@@ -3,46 +3,45 @@ import asyncHandler from "express-async-handler";
 import Comment from "../models/commentModel";
 import Post from "../models/postModel";
 
-// Create a new comment
+//create a comment
 export const createComment = asyncHandler(
   async (req: Request, res: Response) => {
-    const { content } = req.body;
-    const userId = req.user!.id;
     const postId = req.params.postId;
+
+    if (!postId || postId.trim() == "") {
+      res.status(400);
+      throw new Error("Post ID is required");
+    }
+
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      res.status(404);
+      throw new Error("Post not found");
+    }
+
+    const { content } = req.body;
 
     if (!content) {
       res.status(400);
       throw new Error("Content is required");
     }
 
-    if (!postId) {
-      res.status(400);
-      throw new Error("Post ID is required");
-    }
-
-    // Find the post by ID
-    const post = await Post.findById(postId);
-    if (!post) {
-      res.status(404);
-      throw new Error("Post not found");
-    }
-
     // Create a new comment
     const comment = await Comment.create({
       postId,
-      userId,
+      userId: req.user!.id,
       content,
       timestamp: new Date(),
     });
 
-    // Add the comment ID to the post's comments array
     post.comments.push(comment._id.toString());
     await post.save();
 
     res.status(201).json({
       message: "Comment created successfully",
       comment: {
-        id: comment._id, 
+        id: comment._id,
         postId: comment.postId,
         userId: comment.userId,
         content: comment.content,
@@ -51,6 +50,7 @@ export const createComment = asyncHandler(
     });
   }
 );
+
 
 // Get all comments for a specific post
 export const getCommentsByPostId = asyncHandler(
@@ -69,8 +69,6 @@ export const getCommentsByPostId = asyncHandler(
       res.status(404);
       throw new Error("Post not found");
     }
-
-  
 
     res.status(200).json({
       comments,

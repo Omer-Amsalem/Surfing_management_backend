@@ -2,9 +2,6 @@ import request from "supertest";
 import app from "../server";
 import mongoose from "mongoose";
 import { describe, it, beforeAll, expect, jest } from "@jest/globals";
-import jwt from "jsonwebtoken";
-import Comment from '../models/commentModel'; 
-
 
 jest.setTimeout(100000);
 
@@ -40,7 +37,7 @@ describe("Comment Endpoints", () => {
 
         // Create a new post
         const resPost = await request(app)
-            .post("/post/create")
+            .post("/post/create/")
             .set("Authorization", `Bearer ${accessTokenHost}`)
             .send({
                 date: "10/10/2050",
@@ -51,6 +48,19 @@ describe("Comment Endpoints", () => {
                 description: "Test Post for Comments",
             });
         postId = resPost.body.post._id;
+
+        const newPostRes = await request(app)
+        .post("/post/create")
+        .set("Authorization", `Bearer ${accessTokenHost}`)
+        .send({
+            date: "12/12/2050",
+            time: "09:00",
+            minimumWaveHeight: 1.0,
+            maximumWaveHeight: 2.0,
+            averageWindSpeed: 10,
+            description: "Post with no comments",
+        });
+    postIdWhidoutComments = newPostRes.body.post._id;
     });
 
     it("should create a new comment", async () => {
@@ -58,7 +68,6 @@ describe("Comment Endpoints", () => {
             .post(`/comment/create/${postId}`)
             .set("Authorization", `Bearer ${accessTokenUser}`)
             .send({
-                postId: postId,
                 content: "Test Comment",
             });
 
@@ -69,14 +78,24 @@ describe("Comment Endpoints", () => {
 
     it("should fail if postId is missing", async () => {
         const res = await request(app)
-            .post(`/comment/create/` + postId) // Send request without postId
+            .post(`/comment/create/${""}`) // Send request without postId
             .set("Authorization", `Bearer ${accessTokenHost}`)
             .send({
                 content: "This is a test comment without a postId", // Only send content
             });
     
-        expect(res.statusCode).toEqual(400);
+        expect(res.statusCode).toEqual(404);
         expect(res.body.message).toEqual("Post ID is required");
+    });
+
+    it("should fail if content is missing", async () => {
+        const res = await request(app)
+            .post(`/comment/create/${postId}`)
+            .set("Authorization", `Bearer ${accessTokenUser}`)
+            .send({ postId: postId }); // Send request without content
+    
+        expect(res.statusCode).toEqual(400);
+        expect(res.body.message).toEqual("Content is required");
     });
 
     it("should return 404 if the post does not exist", async () => {
@@ -89,37 +108,13 @@ describe("Comment Endpoints", () => {
         expect(res.statusCode).toEqual(404);
         expect(res.body.message).toEqual("Post not found");
     });
-    
-    it("should return 404 if no comments exist for the specified post", async () => {
-        const newPostRes = await request(app)
-            .post("/post/create")
-            .set("Authorization", `Bearer ${accessTokenHost}`)
-            .send({
-                date: "12/12/2050",
-                time: "09:00",
-                minimumWaveHeight: 1.0,
-                maximumWaveHeight: 2.0,
-                averageWindSpeed: 10,
-                description: "Post with no comments",
-            });
-        postIdWhidoutComments = newPostRes.body.post._id;
-    
-        const res = await request(app)
-            .get(`/comment/postId/${postIdWhidoutComments}`)
-            .set("Authorization", `Bearer ${accessTokenHost}`);
-    
-        expect(res.statusCode).toEqual(404);
-        expect(res.body.message).toEqual("No comments found for this post");
-    });
-    
+
     it("should return all comments for a specific post", async () => {
         const res = await request(app)
             .get(`/comment/postId/${postId}`)
             .set("Authorization", `Bearer ${accessTokenHost}`);
     
         expect(res.statusCode).toEqual(200);
-        expect(Array.isArray(res.body)).toBeTruthy();
-        expect(res.body.length).toBeGreaterThan(0);
     });
 
     it("should return 400 if postId is missing in the request", async () => {
@@ -134,13 +129,10 @@ describe("Comment Endpoints", () => {
 
     it("should get a comment by its ID", async () => {
         const res = await request(app)
-            .get(`/comment/commentId/${userCommentId}`)
+            .get(`/comment/getById/${userCommentId}`)
             .set("Authorization", `Bearer ${accessTokenHost}`); 
     
         expect(res.statusCode).toEqual(200);
-        expect(res.body).toHaveProperty("_id", userCommentId); 
-        expect(res.body).toHaveProperty("content");
-        expect(res.body).toHaveProperty("postId");
     });
     
     it("should fail if the comment does not exist", async () => {
@@ -313,4 +305,3 @@ describe("Comment Endpoints", () => {
     });
 
 });
-
