@@ -3,7 +3,6 @@ import asyncHandler from "express-async-handler";
 import Post from "../models/postModel";
 import User from "../models/userModel";
 import Comment from "../models/commentModel";
-import { populate } from "dotenv";
 
 // Create Post (Host Only)
 export const createPost = asyncHandler(async (req: Request, res: Response) => {
@@ -33,10 +32,8 @@ export const createPost = asyncHandler(async (req: Request, res: Response) => {
     throw new Error("All fields are required");
   }
 
-  const formattedDate = convertIsraeliDateToDate(date);
-
   const post = new Post({
-    date: formattedDate,
+    date,
     time,
     minimumWaveHeight,
     maximumWaveHeight,
@@ -56,29 +53,15 @@ export const createPost = asyncHandler(async (req: Request, res: Response) => {
 // Get All Posts
 export const getAllPosts = asyncHandler(async (req: Request, res: Response) => {
   const posts = await Post.find().sort({ createdAt: -1 });
-
-  const formattedPosts = posts.map((post) => ({
-    ...post.toObject(), // Convert the post to a plain object
-    date: convertDateToIsraeliDate(post.date), // Add a formatted date
-  }));
-
-  res.status(200).json(formattedPosts); // Return the updated list of posts
+  res.status(200).json(posts);
 });
 
 // Get Future Posts Only
 export const getFuturePosts = asyncHandler(
   async (req: Request, res: Response) => {
     const today = new Date();
-
     const posts = await Post.find({ date: { $gte: today } }).sort({ date: 1 });
-
-    const formattedPosts = posts.map((post) => ({
-      ...post.toObject(),
-      date: convertDateToIsraeliDate(post.date),
-    }));
-
-    res.status(200).json(formattedPosts);
-    console.log(formattedPosts);
+    res.status(200).json(posts);
   }
 );
 
@@ -92,22 +75,17 @@ export const getPostById = asyncHandler(async (req: Request, res: Response) => {
     throw new Error("Post not found");
   }
 
-  const formattedPost = {
-    ...post.toObject(),
-    date: convertDateToIsraeliDate(post.date),
-  };
-
-  res.status(200).json(formattedPost);
+  res.status(200).json(post);
 });
 
-//Get participants by post id
+// Get participants by post id
 export const getParticipantsByPostId = asyncHandler(
   async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const post = await Post.findById(id).populate(
       "participants",
-      "_id fristName lastName role profilePicture"
+      "_id firstName lastName role profilePicture"
     );
 
     if (!post) {
@@ -145,9 +123,7 @@ export const updatePost = asyncHandler(async (req: Request, res: Response) => {
     throw new Error("Post not found");
   }
 
-  const formattedDate = date ? convertIsraeliDateToDate(date) : undefined;
-
-  post.date = formattedDate || post.date;
+  post.date = date || post.date;
   post.time = time || post.time;
   post.minimumWaveHeight = minimumWaveHeight || post.minimumWaveHeight;
   post.maximumWaveHeight = maximumWaveHeight || post.maximumWaveHeight;
@@ -157,14 +133,9 @@ export const updatePost = asyncHandler(async (req: Request, res: Response) => {
 
   const updatedPost = await post.save();
 
-  const formattedPost = {
-    ...updatedPost.toObject(),
-    date: convertDateToIsraeliDate(updatedPost.date),
-  };
-
   res.status(200).json({
     message: "Post updated successfully",
-    updatedPost: formattedPost,
+    updatedPost,
   });
 });
 
@@ -183,18 +154,16 @@ export const likePost = asyncHandler(async (req: Request, res: Response) => {
   const userId = user.id.toString();
 
   if (post.likes.includes(userId)) {
-    // if user alrady did a like it will be - unlike
     post.likes = post.likes.filter((like) => like !== userId);
     post.likeCount = post.likes.length;
     await post.save();
-    
+
     res.status(200).json({
       message: "Like removed successfully",
       likeCount: post.likeCount,
       likes: post.likes,
     });
   } else {
-    // if the user did not push like, the like will be added
     post.likes.push(userId);
     post.likeCount = post.likes.length;
     await post.save();
@@ -222,7 +191,6 @@ export const joinPost = asyncHandler(async (req: Request, res: Response) => {
   const userId = user.id.toString();
 
   if (post.participants.includes(userId)) {
-    // If the user is already a participant, remove hem (unjoin)
     post.participants = post.participants.filter(
       (participant) => participant.toString() !== userId
     );
@@ -235,18 +203,17 @@ export const joinPost = asyncHandler(async (req: Request, res: Response) => {
 
     const populatedParticipants = await Post.findById(id).populate(
       "participants",
-      "_id fristName lastName role profilePicture"
+      "_id firstName lastName role profilePicture"
     );
 
     res.status(200).json({
-      message: "Participation removed successfully and user left the activity",
+      message: "Participation removed successfully",
       participants: populatedParticipants?.participants || [],
       participantCount: post.participants.length,
-      userAcivity: user.userActivity,
+      userActivity: user.userActivity,
       userActivityCount: user.userActivity.length,
     });
   } else {
-    // If the user is not a participant yet, add them (join)
     post.participants.push(userId);
     user.userActivity.push(post.id);
 
@@ -255,21 +222,20 @@ export const joinPost = asyncHandler(async (req: Request, res: Response) => {
 
     const populatedParticipants = await Post.findById(id).populate(
       "participants",
-      "_id fristName lastName role profilePicture"
+      "_id firstName lastName role profilePicture"
     );
 
     res.status(200).json({
-      message:
-        "Participation confirmed successfully and user joined the activity",
+      message: "Participation confirmed successfully",
       participants: populatedParticipants?.participants || [],
       participantCount: post.participants.length,
-      userAcivity: user.userActivity,
+      userActivity: user.userActivity,
       userActivityCount: user.userActivity.length,
     });
   }
 });
 
-//delete all likes from a post
+// Delete All Likes
 export const deleteAllLikes = asyncHandler(
   async (req: Request, res: Response) => {
     const user = req.user!;
@@ -298,7 +264,7 @@ export const deleteAllLikes = asyncHandler(
   }
 );
 
-// delete all participants from a post
+// Delete All Participants
 export const deleteAllParticipants = asyncHandler(
   async (req: Request, res: Response) => {
     const user = req.user!;
@@ -343,7 +309,6 @@ export const deletePost = asyncHandler(async (req: Request, res: Response) => {
     throw new Error("Post not found");
   }
 
-  // Delete all comments associated with the post
   await Comment.deleteMany({ _id: { $in: post.comments } });
 
   await post.deleteOne();

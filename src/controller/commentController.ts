@@ -1,10 +1,7 @@
 import { Request, Response } from "express";
-import mongoose from "mongoose";
 import asyncHandler from "express-async-handler";
 import Comment from "../models/commentModel";
 import Post from "../models/postModel";
-import { timeStamp } from "console";
-import { populate } from "dotenv";
 
 // Create a new comment
 export const createComment = asyncHandler(
@@ -38,7 +35,7 @@ export const createComment = asyncHandler(
       timestamp: new Date(),
     });
 
-    // Update add the comment ID to the post's comments array
+    // Add the comment ID to the post's comments array
     post.comments.push(comment._id.toString());
     await post.save();
 
@@ -72,6 +69,8 @@ export const getCommentsByPostId = asyncHandler(
       res.status(404);
       throw new Error("Post not found");
     }
+
+  
 
     res.status(200).json({
       comments,
