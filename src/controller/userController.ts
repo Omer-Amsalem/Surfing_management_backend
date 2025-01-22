@@ -187,6 +187,7 @@ export const getUserById = asyncHandler(async (req: Request, res: Response) => {
     res.status(200).json(user);
 });
 
+// get user activities
 export const getUserActivities = asyncHandler(async (req: Request, res: Response) => {
     const user = req.user!;
     const posts = await User.findById(user._id).populate("userActivity");;
