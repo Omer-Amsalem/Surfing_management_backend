@@ -139,6 +139,7 @@ export const logoutUser = asyncHandler(async (req: Request, res: Response) => {
 
     // Remove the token from the refresh token list
     user.refreshToken = user.refreshToken.filter((t) => t !== token);
+    user.refreshToken = [];
     await user.save();
 
     res.status(200).json({ message: "User logged out successfully" });

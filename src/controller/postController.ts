@@ -170,40 +170,42 @@ export const updatePost = asyncHandler(async (req: Request, res: Response) => {
 
 // Like or unlike a Post
 export const likePost = asyncHandler(async (req: Request, res: Response) => {
-    const user = req.user!;
-    const { id } = req.params;
-  
-    const post = await Post.findById(id);
-  
-    if (!post) {
-      res.status(404);
-      throw new Error("Post not found");
-    }
-  
-    const userId = user.id.toString();
-  
-    if (post.likes.includes(userId)) {
-      // if user alrady did a like it will be - unlike
-      post.likes = post.likes.filter((like) => like !== userId);
-      post.likeCount = post.likes.length;
-      await post.save();
-  
-      res.status(200).json({
-        message: "Like removed successfully",
-        likeCount: post.likeCount,
-      });
-    } else {
-      // if the user did not push like, the like will be added
-      post.likes.push(userId);
-      post.likeCount = post.likes.length;
-      await post.save();
-  
-      res.status(200).json({
-        message: "Post liked successfully",
-        likeCount: post.likeCount,
-      });
-    }
-  });
+  const user = req.user!;
+  const { id } = req.params;
+
+  const post = await Post.findById(id);
+
+  if (!post) {
+    res.status(404);
+    throw new Error("Post not found");
+  }
+
+  const userId = user.id.toString();
+
+  if (post.likes.includes(userId)) {
+    // if user alrady did a like it will be - unlike
+    post.likes = post.likes.filter((like) => like !== userId);
+    post.likeCount = post.likes.length;
+    await post.save();
+    
+    res.status(200).json({
+      message: "Like removed successfully",
+      likeCount: post.likeCount,
+      likes: post.likes,
+    });
+  } else {
+    // if the user did not push like, the like will be added
+    post.likes.push(userId);
+    post.likeCount = post.likes.length;
+    await post.save();
+
+    res.status(200).json({
+      message: "Post liked successfully",
+      likeCount: post.likeCount,
+      likes: post.likes,
+    });
+  }
+});
 
 // Join or Unjoin a Post
 export const joinPost = asyncHandler(async (req: Request, res: Response) => {
