@@ -40,36 +40,3 @@ class ChatController {
 
 export default new ChatController();
 
-
-
-// import { Request, Response } from 'express';
-// import { ChatMessage } from '../types/types';
-// import { v4 as uuidv4 } from 'uuid';
-// import axios from 'axios';
-// import { GoogleGenerativeAI } from '@google/generative-ai';
-// import { SchemaType } from '@google/generative-ai';
-
-// class ChatController {
-//   async sendMessage(req: Request, res: Response) {
-//     try {
-//       const { message } = req.body as { message: string };
-
-//       // Replace with the actual Gemini API endpoint URL
-//     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-// 	const model = genAI.getGenerativeModel({
-// 		model: 'gemini-1.5-flash',
-// 	});
-
-//     const result = await model.generateContent(message);
-	
-//     const assistantResponse = result.response.text();
-
-//       res.json({ message: assistantResponse });
-//     } catch (error) {
-//       console.error('Error sending message:', error);
-//       res.status(500).json({ error: 'Failed to send message' });
-//     }
-//   }
-// }
-
-// export default new ChatController();
