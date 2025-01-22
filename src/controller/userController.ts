@@ -209,18 +209,15 @@ export const getUserById = asyncHandler(async (req: Request, res: Response) => {
 });
 
 // get user activities
-export const getUserActivities = asyncHandler(
-  async (req: Request, res: Response) => {
+export const getUserActivities = asyncHandler(async (req: Request, res: Response) => {
     const user = req.user!;
-
-    if (!user) {
-      res.status(404);
-      throw new Error("User not found");
+    const posts = await User.findById(user._id).populate("userActivity");;
+    if (!posts) {
+        res.status(404);
+        throw new Error("Posts not found");
     }
-    
-    res.status(200).json(user.userActivity);
-  }
-);
+    res.status(200).json(posts.userActivity);
+});
 
 // Auth Middleware
 export const auth = asyncHandler(
