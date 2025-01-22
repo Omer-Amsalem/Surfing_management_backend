@@ -86,7 +86,7 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 export const refreshToken = asyncHandler(
   async (req: Request, res: Response) => {
     const { token } = req.body;
-
+    console.log(token);
     if (!token) {
       res.status(403);
       throw new Error("Refresh token required");
@@ -99,17 +99,18 @@ export const refreshToken = asyncHandler(
     let payload: JwtPayload;
     try {
       payload = jwt.verify(token, REFRESH_TOKEN_SECRET) as JwtPayload;
+
+
     } catch (err) {
       user.refreshToken = [];
       await user.save();
-      res.status(403);
+      res.status(404);
       throw new Error("Expired or invalid refresh token");
     }
 
     // Generate new tokens
     const newAccessToken = generateAccessToken(user._id.toString());
     const newRefreshToken = generateRefreshToken(user._id.toString());
-    console.log("refresh Token =  ", newRefreshToken);
     // Update user's refresh token array
     user.refreshToken = user.refreshToken.filter((t) => t !== token); // Remove old token
     user.refreshToken.push(newRefreshToken);
@@ -211,12 +212,8 @@ export const getUserById = asyncHandler(async (req: Request, res: Response) => {
 // get user activities
 export const getUserActivities = asyncHandler(async (req: Request, res: Response) => {
     const user = req.user!;
-    const posts = await User.findById(user._id).populate("userActivity");;
-    if (!posts) {
-        res.status(404);
-        throw new Error("Posts not found");
-    }
-    res.status(200).json(posts.userActivity);
+    const posts = await User.findById(user._id).populate("userActivity");
+    res.status(200).json(posts?.userActivity);
 });
 
 // Auth Middleware

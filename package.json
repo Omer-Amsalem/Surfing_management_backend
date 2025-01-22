@@ -9,6 +9,7 @@
     "testAuth": "jest --detectOpenHandles --forceExit user.test.ts  --runInBand --coverage",
     "testPost": "jest --detectOpenHandles --forceExit post.test.ts  --runInBand --coverage",
     "testComment": "jest --detectOpenHandles --forceExit comment.test.ts --runInBand --coverage",
+    "testChat": "jest --detectOpenHandles --forceExit chat.test.ts --runInBand --coverage",
     "start": "nodemon ./src/server.ts"
   },
   "keywords": [],
