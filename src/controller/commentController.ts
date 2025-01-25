@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 import Comment from "../models/commentModel";
 import Post from "../models/postModel";
+import mongoose from "mongoose";
 
 //create a comment
 export const createComment = asyncHandler(
@@ -85,9 +86,16 @@ export const getCommentById = asyncHandler(
   async (req: Request, res: Response) => {
     const { commentId } = req.params;
 
-    console.log("commentId:", commentId);
+    if (!commentId || commentId.trim() === "") {
+      res.status(400);
+      throw new Error("Comment ID is required");
+    }
 
-    // Find the comment by ID
+    if (!mongoose.Types.ObjectId.isValid(commentId)) {
+      res.status(400);
+      throw new Error("Invalid Comment ID");
+    }
+
     const comment = await Comment.findById(commentId);
 
     if (!comment) {
@@ -98,6 +106,7 @@ export const getCommentById = asyncHandler(
     res.status(200).json(comment);
   }
 );
+
 
 // Get all comments by a specific user
 export const getCommentsByUserId = asyncHandler(
