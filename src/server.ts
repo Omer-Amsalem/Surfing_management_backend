@@ -37,10 +37,10 @@ app.use("/api.gemini.com", chatRoutes);
 app.use(errorHandler);
 
 if (process.env.NODE_ENV === 'production') {
-	app.use(express.static(path.join(__dirname, '../../../Surfing_management_frontend/dist')));
+	app.use(express.static(path.join(__dirname, '../../Surfing_management_frontend/dist')));
 
 	app.get('*', (req, res) => {
-		res.sendFile(path.join(__dirname, '../../../Surfing_management_frontend/dist', 'index.html'));
+		res.sendFile(path.join(__dirname, '../../Surfing_management_frontend/dist', 'index.html'));
 	});
 }
 
