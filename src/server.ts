@@ -58,6 +58,14 @@ const startServer = async () => {
             });
             return;
         }
+        http.createServer((req, res) => {
+            res.writeHead(301, {
+                Location: 'https://' + req.headers.host + req.url,
+            });
+            res.end();
+        }).listen(80, () => {
+            console.log('Redirecting HTTP to HTTPS');
+        });
         const options = {
             key: fs.readFileSync("./client-key.pem"),
             cert: fs.readFileSync("./client-cert.pem"),
