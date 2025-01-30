@@ -66,7 +66,9 @@ const userSchema = new Schema<IUser>({
     ],
 });
 
-export default mongoose.model<IUser>("User", userSchema);
+const usersCollectionName = process.env.NODE_ENV === "production" ? "app_users" : "users";
+
+export default mongoose.model<IUser>("User", userSchema, usersCollectionName);
 
 
 export interface UserDocument extends IUser, Document { }
