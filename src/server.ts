@@ -59,14 +59,15 @@ const startServer = async () => {
             return;
         }
         const options = {
-            key: fs.readFileSync("../client-key.pem"),
-            cert: fs.readFileSync("../client-cert.pem"),
+            key: fs.readFileSync("./client-key.pem"),
+            cert: fs.readFileSync("./client-cert.pem"),
         }
         const httpsServer = https.createServer(options, app);
         httpsServer.listen(HTTPS_PORT, () => {
             console.log(`Server running on port ${HTTPS_PORT}`);
         });
     } catch (error) {
+        console.error("Failed to start the server:", error);
         console.error("Failed to start the server due to DB connection issue.");
         process.exit(1); 
     }
