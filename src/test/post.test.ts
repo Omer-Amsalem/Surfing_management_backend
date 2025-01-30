@@ -3,7 +3,7 @@ import app from "../server";
 import mongoose from "mongoose";
 import Post from "../models/postModel";
 import User from "../models/userModel";
-import{convertIsraeliDateToDate} from "../controller/postController"
+import{convertDateToIsraeliDate, convertIsraeliDateToDate} from "../controller/postController"
 import { describe, it, beforeAll, expect, test, jest } from "@jest/globals";
 
 process.env.NODE_ENV = "test";
@@ -260,6 +260,26 @@ describe("Post Endpoints", () => {
         expect(res.body.message).toBe("Post not found");
     });
 
+    it ("shuld fail to get paricipants if post dosnt exist", async () => {
+        const nonExistentPostId = "64c8f4e1b2d8b1c1e6a39e99"; 
+    
+        const res = await request(app)
+            .get(`/post/getParticipants/${nonExistentPostId}`)
+            .set("Authorization", `Bearer ${accessTokenHost}`);
+    
+        expect(res.statusCode).toBe(404);
+        expect(res.body.message).toBe("Post not found");
+    });
+
+    it("should get participants by post ID", async () => {
+        const res = await request(app)
+            .get(`/post/getParticipants/${postId}`)
+            .set("Authorization", `Bearer ${accessTokenHost}`);
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body).toEqual([]);
+    });
+
     it("should fail to delete all likes if not host", async () => {
         const res = await request(app)
             .delete(`/post/deleteAllLikes/${postId}`)
@@ -333,6 +353,7 @@ describe("Post Endpoints", () => {
         expect(res.body.message).toBe("Post and its comments deleted successfully");
     });
 
+
     it("should fail when trying to delete a non-existent post", async () => {
         const nonExistentPostId = "64c8f4e1b2d8b1c1e6a39e99"; 
     
@@ -372,4 +393,16 @@ describe("Post Endpoints", () => {
             "Invalid date format. Expected format: DD/MM/YYYY"
         );
     });
+
+    it("should convert a valid Mongo date format to DD/MM/YYYY", () => {
+        const date = new Date("2025-01-22T00:00:00Z");
+        const result = convertDateToIsraeliDate(date);
+        expect(result).toBe("22/01/2025");
+      });
+    
+      it("should handle single-digit day and month correctly", () => {
+        const date = new Date("2025-03-05T00:00:00Z");
+        const result = convertDateToIsraeliDate(date);
+        expect(result).toBe("05/03/2025");
+      });
 });

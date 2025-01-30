@@ -1,5 +1,6 @@
 import express from "express";
-import { registerUser, loginUser, logoutUser,refreshToken, updateUser, deleteUser, auth, getUserById,getUserActivities} from "../controller/userController"; 
+import { registerUser, loginUser, logoutUser,refreshToken, updateUser,
+     deleteUser, auth, getUserById,getUserActivities, googleLogin} from "../controller/userController"; 
 import upload from "../config/storage";
 import { get } from "http";
 
@@ -11,7 +12,8 @@ router.post("/logout", logoutUser);
 router.put("/update",auth, upload.single("profilePicture"), updateUser);
 router.delete("/delete",auth, deleteUser);
 router.get("/getUser/:id", auth , getUserById);
-router.post("/refresh_token", refreshToken);
+router.post("/refreshToken", refreshToken);
 router.get("/activities", auth, getUserActivities);
+router.post("/googlelogin", googleLogin);
 
 export default router;
