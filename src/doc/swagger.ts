@@ -1,7 +1,7 @@
 import userPaths from "./userRoutPaths";
 import postsPaths from "./postsRoutPaths";
 import commentsPaths from "./commentsRoutPaths";
-import components from "./components";
+import chatPaths from "./chatRouts";
 
 const options = {
   definition: {
@@ -31,8 +31,7 @@ const options = {
         description: "The Comments API",
       },
     ],
-    components: components,
-    paths: { ...userPaths, ...postsPaths, ...commentsPaths },
+    paths: { ...userPaths, ...postsPaths, ...commentsPaths, ...chatPaths },
   },
   apis: ["./src/routes/*.ts"],
 };
