@@ -1,7 +1,7 @@
 module.exports = {
   apps : [{
     name   : "REST API",
-    script : "./dist/src/app.js",
+    script : "./dist/src/server.js",
     env_production: {
       NODE_ENV: "production",
     }
