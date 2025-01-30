@@ -2,7 +2,6 @@ import express from "express";
 import { registerUser, loginUser, logoutUser,refreshToken, updateUser,
      deleteUser, auth, getUserById,getUserActivities, googleLogin} from "../controller/userController"; 
 import upload from "../config/storage";
-import { get } from "http";
 
 const router = express.Router();
 
