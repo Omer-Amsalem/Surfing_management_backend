@@ -11,6 +11,7 @@
     "testComment": "jest --detectOpenHandles --forceExit comment.test.ts --runInBand --coverage",
     "testChat": "jest --detectOpenHandles --forceExit chat.test.ts --runInBand --coverage",
     "start": "nodemon ./src/server.ts",
+    "build": "rimraf dist && tsc",
     "prod": "cp .envprod .env && tsc -p tsconfig_prod.json && pm2 restart ecosystem.config.js --env production"
   },
   "keywords": [],
