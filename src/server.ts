@@ -13,9 +13,6 @@ import http from "http";
 import https from "https";
 import fs from "fs";
 import path from "path";
-import swaggerJsDoc from "swagger-jsdoc";
-import swaggerUI from "swagger-ui-express";
-import options from "./doc/swagger";
 
 dotenv.config();
 
