@@ -8,6 +8,9 @@ import "./types/types";
 import postRoutes from "./routes/postRoutes";
 import commentRoutes from "./routes/commentRoutes";
 import chatRoutes from "./routes/chatRoutes";
+import swaggerJsDoc from "swagger-jsdoc";
+import swaggerUI from "swagger-ui-express"
+import options from "./doc/swagger";
 import cors from "cors";
 import http from "http";
 import https from "https";
@@ -17,6 +20,9 @@ import path from "path";
 dotenv.config();
 
 const app: Application = express();
+
+const specs = swaggerJsDoc(options);
+app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
