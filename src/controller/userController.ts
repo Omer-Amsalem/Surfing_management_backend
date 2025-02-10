@@ -1,10 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import User from "../models/userModel";
-import {
-  convertIsraeliDateToDate,
-  convertDateToIsraeliDate,
-} from "./postController";
 import asyncHandler from "express-async-handler";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import {
@@ -186,6 +182,7 @@ export const updateUser = asyncHandler(async (req: Request, res: Response) => {
       id: updatedUser._id,
       firstName: updatedUser.firstName,
       lastName: updatedUser.lastName,
+      userPhoto: updatedUser.profilePicture,
     },
   });
 });
