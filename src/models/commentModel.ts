@@ -15,10 +15,12 @@ interface IComment {
 const CommentSchema = new Schema<IComment>({
   postId: {
     type: Schema.Types.ObjectId,
+    ref: "Post",
     required: true,
   },
   userId: {
     type: Schema.Types.ObjectId,
+    ref: "User",
     required: true,
   },
   content: {

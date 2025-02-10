@@ -57,8 +57,6 @@ export const createComment = asyncHandler(
 export const getCommentsByPostId = asyncHandler(
   async (req: Request, res: Response) => {
     const { postId } = req.params;
-
-    const comments = await Comment.find({ postId });
     const post = await Post.findById(postId);
 
     if (!postId) {
@@ -70,6 +68,8 @@ export const getCommentsByPostId = asyncHandler(
       res.status(404);
       throw new Error("Post not found");
     }
+
+    const comments = await Comment.find({ postId }).populate("userId", "firstName lastName profilePicture");
 
     res.status(200).json({
       comments,
