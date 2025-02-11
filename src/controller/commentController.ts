@@ -47,7 +47,6 @@ export const createComment = asyncHandler(
     res.status(201).json({
       message: "Comment created successfully",
       comment: populatedComment,
-      _id: comment._id,
     });
   }
 );
