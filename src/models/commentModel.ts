@@ -4,9 +4,6 @@ import { Schema, model, mongo } from "mongoose";
 interface IComment {
   postId: mongo.ObjectId;
   userId: mongo.ObjectId;
-  firstName: string;
-  lastName: string;
-  profilePicture: string;
   content: string;
   timestamp: Date;
 }
