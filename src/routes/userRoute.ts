@@ -12,7 +12,7 @@ router.put("/update",auth, upload.single("profilePicture"), updateUser);
 router.delete("/delete",auth, deleteUser);
 router.get("/getUser/:id", auth , getUserById);
 router.post("/refreshToken", refreshToken);
-router.get("/activities", auth, getUserActivities);
+router.get("/activities/:id", auth, getUserActivities);
 router.post("/googlelogin", googleLogin);
 
 export default router;
