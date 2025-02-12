@@ -209,6 +209,7 @@ export const getUserById = asyncHandler(async (req: Request, res: Response) => {
 // get user activities with pagination
 export const getUserActivities = asyncHandler(async (req: Request, res: Response) => {
   const user = req.user!;
+  const id = req.params.id;
   const { page = 1, limit = 10 } = req.query;
 
   const pageNumber = Number(page);
@@ -220,7 +221,7 @@ export const getUserActivities = asyncHandler(async (req: Request, res: Response
   }
 
   // Find total activities count
-  const totalActivities = await User.findById(user._id).select("userActivity").lean();
+  const totalActivities = await User.findById(id).select("userActivity").lean();
   if (!totalActivities) {
       res.status(404);
       throw new Error("User not found");
@@ -230,7 +231,7 @@ export const getUserActivities = asyncHandler(async (req: Request, res: Response
   const totalPages = Math.ceil(totalRecords / limitNumber);
 
   // Fetch paginated activities
-  const userWithActivities = await User.findById(user._id)
+  const userWithActivities = await User.findById(id)
       .populate({
           path: "userActivity",
           options: {
