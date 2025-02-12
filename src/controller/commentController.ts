@@ -56,11 +56,6 @@ export const getCommentsByPostId = asyncHandler(
   async (req: Request, res: Response) => {
     const { postId } = req.params;
 
-    if (!postId) {
-      res.status(400);
-      throw new Error("Post ID is required");
-    }
-
     const post = await Post.findById(postId);
 
     if (!post) {
@@ -87,6 +82,7 @@ export const getCommentsByPostId = asyncHandler(
 export const getCommentById = asyncHandler(
   async (req: Request, res: Response) => {
     const { commentId } = req.params;
+  
 
     if (!commentId || commentId.trim() === "") {
       res.status(400);
@@ -179,7 +175,10 @@ export const updateComment = asyncHandler(
 export const deleteComment = asyncHandler(
   async (req: Request, res: Response) => {
     const { commentId } = req.params;
-    const userId = req.user!.id;
+    const userId = req.user!.id.toString();
+
+    console.log("🔹 Deleting comment with ID:", commentId);
+    console.log("🔹 Requesting user ID:", userId);
 
     // Find the comment by ID
     const comment = await Comment.findById(commentId);
@@ -208,7 +207,6 @@ export const deleteComment = asyncHandler(
 
     const updatedPost = await Post.findById(comment.postId);
 
-    // Send response with updated comment count
     res.status(200).json({
       message: "Comment deleted successfully",
       numOfComments: updatedPost?.comments.length,

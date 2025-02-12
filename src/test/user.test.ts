@@ -173,17 +173,35 @@ describe("User Endpoints", () => {
     //Get User Activities
     it("should get user activities", async () => {
         const res = await request(app)
-            .get("/user/activities")
+            .get(`/user/activities/${userId}`)
             .set("Authorization", `Bearer ${accessToken}`);
         expect(res.statusCode).toEqual(200);
     });
 
     it("should fail to get user activities with invalid access token", async () => {
         const res = await request(app)
-            .get("/user/activities")
+            .get(`/user/activities/${userId}`)
             .set("Authorization", `Bearer invalid-token`);
         expect(res.statusCode).toEqual(403);
         expect(res.body.message).toBe("Invalid or expired access token");
+    });
+
+    it("should fail to get user activities if the user does not exist", async () => {
+        const res = await request(app)
+            .get(`/user/activities/676959d59c69665bcccf39c7`)
+            .set("Authorization", `Bearer ${accessToken}`);
+
+        expect(res.statusCode).toEqual(404);
+        expect(res.body.message).toBe("User not found");
+    });
+
+    it("should fail when invalid pagination parameters are provided", async () => {
+        const res = await request(app)
+            .get(`/user/activities/${userId}?page=abc&limit=xyz`)
+            .set("Authorization", `Bearer ${accessToken}`);
+
+        expect(res.statusCode).toEqual(400);
+        expect(res.body.message).toBe("Invalid page or limit values");
     });
 
     //Google Login
