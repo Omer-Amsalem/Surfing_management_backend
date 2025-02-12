@@ -216,15 +216,15 @@ export const getUserActivities = asyncHandler(async (req: Request, res: Response
   const limitNumber = Number(limit);
 
   if (isNaN(pageNumber) || isNaN(limitNumber) || pageNumber < 1 || limitNumber < 1) {
-      res.status(400);
-      throw new Error("Invalid page or limit values");
+    res.status(400);
+    throw new Error("Invalid page or limit values");
   }
 
   // Find total activities count
   const totalActivities = await User.findById(id).select("userActivity").lean();
   if (!totalActivities) {
-      res.status(404);
-      throw new Error("User not found");
+    res.status(404);
+    throw new Error("User not found");
   }
 
   const totalRecords = totalActivities.userActivity.length;
@@ -232,25 +232,22 @@ export const getUserActivities = asyncHandler(async (req: Request, res: Response
 
   // Fetch paginated activities
   const userWithActivities = await User.findById(id)
-      .populate({
-          path: "userActivity",
-          options: {
-              skip: (pageNumber - 1) * limitNumber,
-              limit: limitNumber,
-              sort: { createdAt: -1 }, // Sort by latest activity
-          },
-      });
+    .populate({
+      path: "userActivity",
+      options: {
+        skip: (pageNumber - 1) * limitNumber,
+        limit: limitNumber,
+        sort: { createdAt: -1 }, // Sort by latest activity
+      },
+    });
 
-  if (!userWithActivities) {
-      res.status(404);
-      throw new Error("User not found");
-  }
+
 
   res.status(200).json({
-      posts: userWithActivities.userActivity,
-      totalRecords,
-      totalPages,
-      currentPage: pageNumber,
+    posts: userWithActivities?.userActivity,
+    totalRecords,
+    totalPages,
+    currentPage: pageNumber,
   });
 });
 
