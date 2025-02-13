@@ -39,37 +39,34 @@ export const createComment = asyncHandler(
     post.comments.push(comment._id.toString());
     await post.save();
 
+    const populatedComment = await Comment.findById(comment._id).populate(
+      "userId",
+      "firstName lastName profilePicture"
+    );
+
     res.status(201).json({
       message: "Comment created successfully",
-      comment: {
-        id: comment._id,
-        postId: comment.postId,
-        userId: comment.userId,
-        content: comment.content,
-        timestamp: comment.timestamp,
-      },
+      comment: populatedComment,
     });
   }
 );
-
 
 // Get all comments for a specific post
 export const getCommentsByPostId = asyncHandler(
   async (req: Request, res: Response) => {
     const { postId } = req.params;
 
-    const comments = await Comment.find({ postId });
     const post = await Post.findById(postId);
-
-    if (!postId) {
-      res.status(400);
-      throw new Error("Post ID is required");
-    }
 
     if (!post) {
       res.status(404);
       throw new Error("Post not found");
     }
+
+    const comments = await Comment.find({ postId }).populate(
+      "userId",
+      "firstName lastName profilePicture"
+    );
 
     res.status(200).json({
       comments,
@@ -85,6 +82,7 @@ export const getCommentsByPostId = asyncHandler(
 export const getCommentById = asyncHandler(
   async (req: Request, res: Response) => {
     const { commentId } = req.params;
+  
 
     if (!commentId || commentId.trim() === "") {
       res.status(400);
@@ -96,7 +94,10 @@ export const getCommentById = asyncHandler(
       throw new Error("Invalid Comment ID");
     }
 
-    const comment = await Comment.findById(commentId);
+    const comment = await Comment.findById(commentId).populate(
+      "userId",
+      "firstName lastName profilePicture"
+    );
 
     if (!comment) {
       res.status(404);
@@ -107,13 +108,15 @@ export const getCommentById = asyncHandler(
   }
 );
 
-
 // Get all comments by a specific user
 export const getCommentsByUserId = asyncHandler(
   async (req: Request, res: Response) => {
     const { userId } = req.params;
 
-    const comments = await Comment.find({ userId });
+    const comments = await Comment.find({ userId }).populate(
+      "userId",
+      "firstName lastName profilePicture"
+    );
 
     if (!comments || comments.length === 0) {
       res.status(404);
@@ -128,8 +131,6 @@ export const getCommentsByUserId = asyncHandler(
 export const updateComment = asyncHandler(
   async (req: Request, res: Response) => {
     const { commentId } = req.params;
-    const { content } = req.body;
-    const userId = req.user!.id;
 
     // Find the comment by ID
     const comment = await Comment.findById(commentId);
@@ -138,11 +139,15 @@ export const updateComment = asyncHandler(
       throw new Error("Comment not found");
     }
 
+    const userId = req.user!.id;
+
     // Check if the logged-in user is the author of the comment
     if (comment.userId.toString() !== userId) {
       res.status(403);
       throw new Error("Unauthorized to update this comment");
     }
+
+    const { content } = req.body;
 
     if (!content) {
       res.status(400);
@@ -154,10 +159,14 @@ export const updateComment = asyncHandler(
     comment.timestamp = new Date();
     await comment.save();
 
+    const updatedComment = await Comment.findById(comment._id).populate(
+      "userId",
+      "firstName lastName profilePicture"
+    );
+
     res.status(200).json({
       message: "Comment updated successfully",
-      comment,
-      timeStamp: new Date(),
+      comment: updatedComment,
     });
   }
 );
@@ -166,7 +175,10 @@ export const updateComment = asyncHandler(
 export const deleteComment = asyncHandler(
   async (req: Request, res: Response) => {
     const { commentId } = req.params;
-    const userId = req.user!.id;
+    const userId = req.user!.id.toString();
+
+    console.log("🔹 Deleting comment with ID:", commentId);
+    console.log("🔹 Requesting user ID:", userId);
 
     // Find the comment by ID
     const comment = await Comment.findById(commentId);
@@ -195,7 +207,6 @@ export const deleteComment = asyncHandler(
 
     const updatedPost = await Post.findById(comment.postId);
 
-    // Send response with updated comment count
     res.status(200).json({
       message: "Comment deleted successfully",
       numOfComments: updatedPost?.comments.length,

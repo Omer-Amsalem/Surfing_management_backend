@@ -56,14 +56,29 @@ export const getAllPosts = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(posts);
 });
 
-// Get Future Posts Only
-export const getFuturePosts = asyncHandler(
-  async (req: Request, res: Response) => {
-    const today = new Date();
-    const posts = await Post.find({ date: { $gte: today } }).sort({ date: 1 });
-    res.status(200).json(posts);
-  }
-);
+
+export const getFuturePosts = asyncHandler(async (req: Request, res: Response) => {
+  const page = Number(req.query.page) || 1;   // Get the page number from the request, default is 1
+  const limit = Number(req.query.limit) || 10; // Get the limit per page, default is 10
+  const skip = (page - 1) * limit;  // Calculate how many items to skip
+
+  const today = new Date();
+  const totalFuturePosts = await Post.countDocuments({ date: { $gte: today } });
+
+  const posts = await Post.find({ date: { $gte: today } })
+    .sort({ date: 1 }) // Sorting by closest future date first
+    .skip(skip) 
+    .limit(limit);
+
+  const hasMore = skip + limit < totalFuturePosts; // Check if more posts exist
+
+  res.status(200).json({
+    posts,
+    hasMore,  // Indicates if there are more posts to load
+    totalFuturePosts,
+  });
+});
+
 
 // Get Post By ID
 export const getPostById = asyncHandler(async (req: Request, res: Response) => {

@@ -1,10 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import User from "../models/userModel";
-import {
-  convertIsraeliDateToDate,
-  convertDateToIsraeliDate,
-} from "./postController";
 import asyncHandler from "express-async-handler";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import {
@@ -186,6 +182,7 @@ export const updateUser = asyncHandler(async (req: Request, res: Response) => {
       id: updatedUser._id,
       firstName: updatedUser.firstName,
       lastName: updatedUser.lastName,
+      userPhoto: updatedUser.profilePicture,
     },
   });
 });
@@ -209,12 +206,51 @@ export const getUserById = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(user);
 });
 
-// get user activities
+// get user activities with pagination
 export const getUserActivities = asyncHandler(async (req: Request, res: Response) => {
-    const user = req.user!;
-    const posts = await User.findById(user._id).populate("userActivity");
-    res.status(200).json(posts?.userActivity);
+  const user = req.user!;
+  const id = req.params.id;
+  const { page = 1, limit = 10 } = req.query;
+
+  const pageNumber = Number(page);
+  const limitNumber = Number(limit);
+
+  if (isNaN(pageNumber) || isNaN(limitNumber) || pageNumber < 1 || limitNumber < 1) {
+    res.status(400);
+    throw new Error("Invalid page or limit values");
+  }
+
+  // Find total activities count
+  const totalActivities = await User.findById(id).select("userActivity").lean();
+  if (!totalActivities) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  const totalRecords = totalActivities.userActivity.length;
+  const totalPages = Math.ceil(totalRecords / limitNumber);
+
+  // Fetch paginated activities
+  const userWithActivities = await User.findById(id)
+    .populate({
+      path: "userActivity",
+      options: {
+        skip: (pageNumber - 1) * limitNumber,
+        limit: limitNumber,
+        sort: { createdAt: -1 }, // Sort by latest activity
+      },
+    });
+
+
+
+  res.status(200).json({
+    posts: userWithActivities?.userActivity,
+    totalRecords,
+    totalPages,
+    currentPage: pageNumber,
+  });
 });
+
 
 // Auth Middleware
 export const auth = asyncHandler(
