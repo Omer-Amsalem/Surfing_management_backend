@@ -2,6 +2,7 @@ import userPaths from "./userRoutPaths";
 import postsPaths from "./postsRoutPaths";
 import commentsPaths from "./commentsRoutPaths";
 import chatPaths from "./chatRouts";
+import Components from "./components";
 
 const options = {
   definition: {
@@ -32,6 +33,7 @@ const options = {
       },
     ],
     paths: { ...userPaths, ...postsPaths, ...commentsPaths, ...chatPaths },
+    components: Components,
   },
   apis: ["./src/routes/*.ts"],
 };
