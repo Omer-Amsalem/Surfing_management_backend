@@ -115,7 +115,6 @@
 
 {
   "compilerOptions": {
-    /* החזקות שינויים שביצעת */
     "outDir": "./dist",
     "rootDir": "./src",
 
@@ -137,5 +136,6 @@
     /* Completeness */
     "skipLibCheck": true
   },
-  "include": ["src/**/*", "types.d.ts"]
+  "include": ["src/**/*", "src/types/declarations.d.ts"],  
+  "exclude": ["node_modules", "dist", "src/test"]
 }
