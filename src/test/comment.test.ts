@@ -1,7 +1,7 @@
 import request from "supertest";
 import app from "../server";
 import mongoose from "mongoose";
-import { describe, it, beforeAll, expect, jest } from "@jest/globals";
+import { describe, it, beforeAll, afterAll, expect, jest } from "@jest/globals";
 import Post from "../models/postModel";
 
 jest.setTimeout(100000);
