@@ -13,7 +13,6 @@ import swaggerUI from "swagger-ui-express";
 import options from "./doc/swagger";
 import cors from "cors";
 import http from "http";
-import path from "path";
 
 dotenv.config();
 
@@ -27,35 +26,19 @@ app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(mongoSanitize());
-// CORS – מאפשר עדכון ב־ENV
+// מאפשר CORS רק מהמקום שצויין ב־ENV
 app.use(cors({ origin: process.env.CORS_ORIGIN || "*" }));
 
 // Server סטטי ל־uploads (אם קיים)
 app.use("/uploads", express.static("uploads"));
 
-// --- Routes של ה־API ---
+// --- Routes של ה־API (דוגמה) ---
 app.use("/user", userRoute);
 app.use("/post", postRoutes);
 app.use("/comment", commentRoutes);
 app.use("/api.gemini.com", chatRoutes);
 
-// --- Serve סטטי של ה־Frontend במצב production ---
-if (process.env.NODE_ENV === "production") {
-  app.use(
-    express.static(
-      path.join(__dirname, "../../Surfing_management_frontend/dist")
-    )
-  );
-  app.get("*", (_req, res) => {
-    res.sendFile(
-      path.join(
-        __dirname,
-        "../../Surfing_management_frontend/dist",
-        "index.html"
-      )
-    );
-  });
-}
+// ** כאן הוסר לחלוטין ה־serve הסטטי של ה־Frontend **
 
 // --- Error Handler Middleware (סוף השרשרת) ---
 app.use(errorHandler);
@@ -68,7 +51,7 @@ const startServer = async () => {
     await connectDB();
     if (process.env.NODE_ENV === "test") return;
 
-    // תמיד נפתח HTTP רגיל; Render ידאג ל־HTTPS מבחוץ
+    // תמיד נפתח HTTP רגיל; Render ידאג ל־HTTPS חיצוני
     const httpServer = http.createServer(app);
     httpServer.listen(PORT, () => {
       console.log(`Server running (HTTP) on port ${PORT}`);
