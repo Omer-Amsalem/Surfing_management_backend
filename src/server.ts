@@ -27,7 +27,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(mongoSanitize());
 // מאפשר CORS רק מהמקום שצויין ב־ENV
-app.use(cors({ origin: process.env.CORS_ORIGIN || "*" }));
+// app.use(cors({ origin: process.env.CORS_ORIGIN || "*" }));
+app.use(cors({
+  origin: "*", // Replace with your frontend's origin
+  credentials: true, // Allow cookies to be sent
+}));
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "*");
+  res.header("Access-Control-Allow-Methods", "*");
+  next();
+});
 
 // Server סטטי ל־uploads (אם קיים)
 app.use("/uploads", express.static("uploads"));
